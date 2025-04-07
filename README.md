@@ -58,4 +58,4 @@ Erstellen einer To-Do-List und Aufbaustruktur zur Erstellung der Anwendung
 Erstellen eines MVP Minimum Viable Product
 
 07.04.2025 - 7Uhr - 9.30Uhr 
-Einrichten eines Repository auf Git
+Einrichten eines Repository auf Git, Erstellen von Dokumenten zum Praxisprojekt, Gitignore
