@@ -59,3 +59,24 @@ Erstellen eines MVP Minimum Viable Product
 
 07.04.2025 - 7Uhr - 9.30Uhr 
 Einrichten eines Repository auf Git, Erstellen von Dokumenten zum Praxisprojekt, Gitignore
+
+07.04.2025 - 9.30Uhr
+Erweiterung der bestehenden Basis-Funktion für lokale HTML und CSS Dateien 
+Basis-Konsolentest in Terminal: 
+Invoke-RestMethod -Method POST http://localhost:8000/check `
+ -Headers @{ "Content-Type" = "application/json" } `
+ -Body '{ "html": "<html><body><img></body></html>" }'
+
+ Spezifischertest im Terminal: 
+ $htmlContent = Get-Content "C:\Users\b----eckk\Desktop\Projekte\sp----lionaer\index.html" -Raw
+
+# Erstellt reinen String
+$body = @{
+    html = [string]$htmlContent
+} | ConvertTo-Json
+
+# sende den POST-Request
+Invoke-RestMethod -Method POST http://localhost:8000/check `
+    -Headers @{ "Content-Type" = "application/json" } `
+    -Body $body
+
