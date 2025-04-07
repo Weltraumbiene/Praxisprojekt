@@ -5,8 +5,8 @@ automatisierten Überprüfung von Webseiten im Sinne der Barrierefreiheit.
 Dev-Data:
 Windows Shell/Terminal ---> pip install fastapi uvicorn
 
-Link zum Projekt: cd C:\Users\b****eck\Desktop\Praxisprojekt\Anwendung
-Link zum Python-Ordner: cd C:\Users\b****eck\Desktop\Praxisprojekt\Anwendung\python
+Link zum Projekt: cd C:\Users\b-----eck\Desktop\Praxisprojekt\Anwendung
+Link zum Python-Ordner: cd C:\Users\b-----eck\Desktop\Praxisprojekt\Anwendung\python
 
 Start des Python-Servers: python -m uvicorn main:app --reload
 Stopp des Servers: strg+c
