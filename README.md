@@ -111,16 +111,66 @@ Erstellen eines MVP (Minimum Viable Product)
 07.04.2025 - 7:00 - 9:30
 
 Einrichten eines Repositorys auf Git, Erstellen von Dokumenten zum Praxisprojekt, Gitignore
-07.04.2025 - 9:30 - Ende
+07.04.2025 - 9:30 - 19.00 Uhr
 
 Erweiterung der bestehenden Basis-Funktion für lokale HTML und CSS-Dateien
 Konsolentests
-Basis-Konsolentest
+Basis-Konsolentest für URL
 
 Invoke-RestMethod -Method POST http://localhost:8000/check -Headers @{ "Content-Type" = "application/json" } -Body '{ "html": "" }'
 
-Spezifischer Test (HTML-Datei)
+08.04.2025 - 7:00 - 
+Spezifischer Test (lokaleHTML-Datei)
 
-$htmlContent = Get-Content "C:\Users\b----eck\Desktop\Projekte\sp----lionaer\index.html" -Raw
-$body = @{ html = [string]$htmlContent } | ConvertTo-Json
-Invoke-RestMethod -Method POST http://localhost:8000/check -Headers @{ "Content-Type"
+$htmlContent = Get-Content "C:\Users\bfranneck\Desktop\Projekte\sparmillionaer\index.html" -Raw
+$body = @{
+
+    html = [string]$htmlContent
+} | ConvertTo-Json
+Invoke-RestMethod -Method POST http://localhost:8000/check `
+    -Headers @{ "Content-Type" = "application/json" } `
+    -Body $body
+
+    Schwierigkeiten: Die Überprüfung von klassichen HTML Dateien verläuft problemlos, aber Fragmente 
+    und SPA Routes werden nicht überprüft und lösen einen Fehler aus. Ich habe die Funktion erweitert und es wird nun automatisch ein HTML-Head eingefügt, um die Datei lesbar zu machen. Sollte es aber zu Fehlern in der HTML selbst kommen, wird weiterhin der Fehler 400 ausgegeben. Es ist mir bisher nicht möglich gewesen, dass die Fehlermeldung angepasst wird (z.B. "Fehler im HTML-Code. Bitte überprüfen.")
+
+Es ist jetzt aber möglich auch ganze (Projekt)-Ordner zu überprüfen, so das alle HTML Dateien geladen werden: 
+foreach ($file in $htmlFiles) {
+>>     Write-Host "Prüfe: $($file.FullName)" -ForegroundColor Cyan
+>>
+>>     $htmlContent = Get-Content $file.FullName -Raw
+>>
+>>     if (-not $htmlContent.Trim()) {
+>>         Write-Host "⚠️  Datei $($file.Name) ist leer oder nur Whitespace – übersprungen." -ForegroundColor Yellow
+>>         continue
+>>     }
+>>
+>>     # HTML-Fragmente einbetten in komplettes Dokument
+>>     $wrappedHtml = @"
+>> <!DOCTYPE html>
+>> <html lang="de">
+>> <head><meta charset="UTF-8"><title>Test</title></head>
+>> <body>
+>> $htmlContent
+>> </body>
+>> </html>
+>> "@
+>>
+>>     $body = @{
+>>         html = [string]$wrappedHtml
+>>     } | ConvertTo-Json
+>>
+>>     try {
+>>         $response = Invoke-RestMethod -Method POST http://localhost:8000/check `
+>>                                       -Headers @{ "Content-Type" = "application/json" } `
+>>                                       -Body $body
+>>
+>>         Write-Host "✔️  Datei: $($file.Name) – Fehler: $($response.errors), Warnungen: $($response.warnings)" -ForegroundColor Green
+>>     }
+>>     catch {
+>>         Write-Host "❌ Fehler bei Datei: $($file.Name)" -ForegroundColor Red
+>>         Write-Host $_.Exception.Message
+>>     }
+>>
+>>     Write-Host "`n"
+>> }

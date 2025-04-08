@@ -5,7 +5,6 @@ import subprocess
 
 app = FastAPI()
 
-
 # Request Wahlmöglichkeiten
 class URLRequest(BaseModel):
     url: str | None = None      # Für Online-Check
@@ -16,6 +15,17 @@ class URLRequest(BaseModel):
 
 # Funktionen in Axe-Check
 def run_axe_on_html(html: str) -> dict:
+    if "<html" not in html.lower():
+        html = f"""
+        <!DOCTYPE html>
+        <html lang="de">
+        <head><meta charset="UTF-8"><title>Fragment Test</title></head>
+        <body>
+        {html}
+        </body>
+        </html>
+        """
+
     escaped_html = html.replace("\\", "\\\\").replace("`", "\\`")
 
     script = f"""
@@ -144,8 +154,13 @@ def check_accessibility(request: URLRequest):
             """
 
             result = subprocess.run(["node", "-e", html_fetch_script], capture_output=True, text=True, encoding='utf-8')
+            
+            # Prüfe, ob der Fehlercode auf eine ungültige HTML-Datei hinweist
             if result.returncode != 0:
-                raise HTTPException(status_code=500, detail="Fehler beim Laden der URL")
+                if "ERR" in result.stderr:  # Überprüfen, ob der Fehler auf die HTML-Datei hinweist
+                    raise HTTPException(status_code=400, detail="Die HTML Datei ist fehlerhaft. Bitte überprüfen Sie den Quellcode.")
+                else:
+                    raise HTTPException(status_code=500, detail="Fehler beim Laden der URL.")
 
             data = json.loads(result.stdout)
 
@@ -160,7 +175,7 @@ def check_accessibility(request: URLRequest):
         else:
             raise HTTPException(status_code=400, detail="Entweder 'url' oder 'html' muss angegeben sein.")
 
-        #Ausgabe der Ergebnisse
+        # Ausgabe der Ergebnisse
         return {
             "source": request.url or "local",
             "status": "checked",
