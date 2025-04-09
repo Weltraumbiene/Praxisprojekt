@@ -1,36 +1,49 @@
 import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [url, setUrl] = useState('')
+  const [result, setResult] = useState<any>(null)
+
+  const handleCheck = async () => {
+    const response = await fetch('http://localhost:8000/check', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ url }),
+    })
+    const data = await response.json()
+    setResult(data)
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
+    <div className="container">
       <h1>A-SQA Barrierefreiheitsüberprüfung</h1>
-      <h2>für Webseiten, HTML- und CSS-Dateien</h2>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+
+      <input
+        type="text"
+        placeholder="Gib eine URL ein"
+        value={url}
+        onChange={(e) => setUrl(e.target.value)}
+      />
+      <button onClick={handleCheck}>Prüfen</button>
+
+      {result && (
+        <div className="results">
+          <h2>Ergebnisse</h2>
+          <p><strong>Fehler:</strong> {result.errors}</p>
+          <p><strong>Warnungen:</strong> {result.warnings}</p>
+          <ul>
+            {result.suggestions.map((s: string, i: number) => (
+              <li key={i}>{s}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
 
 export default App
+
