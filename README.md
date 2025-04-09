@@ -15,10 +15,17 @@ Python-Setup
 
 pip install fastapi uvicorn
 
+pip install -r requirements.txt
+
+
 Installiere Playwright für das Testen der API:
 
     pip install playwright
     playwright install
+
+anschließend:
+    pip install tinycss2 colormath
+
 
 Projektordner
 
@@ -119,7 +126,7 @@ Basis-Konsolentest für URL
 
 Invoke-RestMethod -Method POST http://localhost:8000/check -Headers @{ "Content-Type" = "application/json" } -Body '{ "html": "" }'
 
-08.04.2025 - 7:00 - 
+08.04.2025 - 7:00 - 11 Uhr
 Spezifischer Test (lokaleHTML-Datei)
 
 $htmlContent = Get-Content "C:\Users\bfranneck\Desktop\Projekte\sparmillionaer\index.html" -Raw
@@ -131,7 +138,14 @@ Invoke-RestMethod -Method POST http://localhost:8000/check `
     -Headers @{ "Content-Type" = "application/json" } `
     -Body $body
 
-    Schwierigkeiten: Die Überprüfung von klassichen HTML Dateien verläuft problemlos, aber Fragmente 
-    und SPA Routes werden nicht überprüft und lösen einen Fehler aus. Ich habe die Funktion erweitert und es wird nun automatisch ein HTML-Head eingefügt, um die Datei lesbar zu machen. Sollte es aber zu Fehlern in der HTML selbst kommen, wird weiterhin der Fehler 400 ausgegeben. Es ist mir bisher nicht möglich gewesen, dieses Problem zu beheben.
+Schwierigkeiten: Die Überprüfung von klassichen HTML Dateien verläuft problemlos, aber Fragmente 
+und SPA Routes werden nicht überprüft und lösen einen Fehler aus. Ich habe die Funktion erweitert und es wird nun automatisch ein HTML-Head eingefügt, um die Datei lesbar zu machen. Sollte es aber zu Fehlern in der HTML selbst kommen, wird weiterhin der Fehler 400 ausgegeben. Es ist mir bisher nicht möglich gewesen, dieses Problem zu beheben.
 
-    Es ist jetzt aber möglich auch ganze (Projekt)-Ordner zu überprüfen, so das alle HTML Dateien geladen werden.
+Es ist jetzt aber möglich auch ganze (Projekt)-Ordner zu überprüfen, so das alle HTML Dateien geladen werden.
+
+08.04.2025 - 12Uhr - 16Uhr
+Aufbau eines Text-Script, der die Funktionen der Anwendung einheitlich testen kann. ".\python\test-api.ps1"
+
+09.04.2025 - 8Uhr - 
+Test des Testscripts. Erfolgreich.
+Beginn der Front-End Entwicklung mit React VITE (Typescripe)
