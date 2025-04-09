@@ -1,3 +1,5 @@
+import json
+import subprocess
 from fastapi import APIRouter, HTTPException
 from functions.extractor import extract_elements_from_html
 from models import URLRequest
@@ -34,8 +36,13 @@ def extract_elements(request: URLRequest):
                     html_structure: []
                 }};
                 
-                // Deine Extraktionslogik hier...
+                // Extrahiere Überschriften
+                result.headings = Array.from(document.querySelectorAll('h1, h2, h3, h4, h5, h6'))
+                                         .map(h => h.innerText);
                 
+                // Extrahiere Bilder
+                result.images = Array.from(document.querySelectorAll('img')).map(img => img.src);
+
                 return result;
             }}, {json.dumps(filter_elements)});
 
@@ -44,10 +51,13 @@ def extract_elements(request: URLRequest):
         }})();
         """
 
+        # Rufe Puppeteer über Node.js auf
         result = subprocess.run(["node", "-e", html_input], capture_output=True, text=True, encoding='utf-8')
+        
         if result.returncode != 0:
             raise HTTPException(status_code=500, detail="Fehler beim Extrahieren: " + result.stderr)
         
+        # Ergebnisse von Puppeteer zurückgeben
         return json.loads(result.stdout)
 
     except Exception as e:
