@@ -1,3 +1,4 @@
+#C:\Users\bfranneck\Desktop\Praxisprojekt\Anwendung\python\models.py
 from pydantic import BaseModel
 from typing import List, Optional
 
