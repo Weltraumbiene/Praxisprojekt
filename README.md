@@ -146,6 +146,60 @@ Es ist jetzt aber möglich auch ganze (Projekt)-Ordner zu überprüfen, so das a
 08.04.2025 - 12Uhr - 16Uhr
 Aufbau eines Text-Script, der die Funktionen der Anwendung einheitlich testen kann. ".\python\test-api.ps1"
 
-09.04.2025 - 8Uhr - 
+09.04.2025 - 8Uhr - 12 Uhr
 Test des Testscripts. Erfolgreich.
 Beginn der Front-End Entwicklung mit React VITE (Typescripe)
+
+09.04.2025 12- 14 Uhr
+Absprache mit einen Kollegen. Klärung von Fragen. Abgleichen der jeweiligen Arbeit. Ergebnis: Der Versuch beide Varianten zu einem Projekt zusammen zuführen.
+
+09.04.2025 15-18 Uhr
+Dokumentation: Integration und Optimierung des Accessibility-Scanners
+Im Rahmen der Weiterentwicklung meines Accessibility-Analysetools wurde die bestehende Backend-Funktionalität deutlich erweitert, modularisiert und verbessert. Ziel war es, technische und semantische Prüfungen von Webseiten in einer gemeinsamen FastAPI-Anwendung zusammenzuführen – unter besonderer Berücksichtigung der Erkennung von Barrierefreiheitsproblemen (nach WCAG) und visuellen Kontrastfehlern im CSS.
+
+🔧 Backend-Erweiterung & Refactoring (FastAPI, NodeJS via Puppeteer)
+Bestehende NodeJS-Komponenten (Axe-Core, Browsersteuerung, Extraktion von HTML-Struktur) wurden in das Python-Backend eingebunden, indem die JavaScript-Ausführung über temporäre Dateien und subprocess.run() umgesetzt wurde.
+
+Der bestehende Endpunkt /check wurde überarbeitet:
+
+HTML-Laden per Puppeteer
+
+AXE-Analyse für WCAG 2.1 A/AA und Best Practices
+
+Strukturelle Validierung: z. B. <h1>-Existenz, Alt-Attribute bei Bildern etc.
+
+CSS-Kontrastanalyse wurde neu implementiert (basierend auf TinyCSS2):
+
+Analyse von color vs. background-color oder background
+
+Unterstützung für #hex, rgb(), rgba(), und (in Teilen) Farbnamen
+
+Abfangen von ungeeigneten Werten wie linear-gradient() oder url(...)
+
+Der alte Ansatz, CSS-Dateien über requests.get() herunterzuladen, wurde ersetzt durch:
+
+eine komplette Extraktion aus dem DOM-Kontext des Browsers
+
+Nutzung von page.evaluate(...) zur Sammlung aller <style>- und <link rel="stylesheet">-Inhalte direkt im gerenderten Zustand
+
+Test & Debugging
+Über PowerShell wurden gezielte API-Tests mit Invoke-RestMethod durchgeführt, u. a. mit realer Zielseite https://www.benclaus.de
+
+Es wurde eine terminale Debug-Ausgabe implementiert, um extrahiertes CSS live zu inspizieren (erste 500 Zeichen)
+
+Nach erfolgreichem CSS-Download und Fixes im Kontrastparser wurden 6 CSS-Probleme korrekt erkannt, darunter fehlende Farbkombinationen, zu niedriger Kontrast und ungültige Farbwerte
+
+AXE-Analyse erkannte parallel Fehler wie:
+
+leere Überschriften (empty-heading)
+
+fehlende Landmark-Struktur (region)
+
+unvollständige Farbangaben (color-contrast als "incomplete")
+
+Technische Herausforderungen & Lösungen
+Windows-spezifischer Fehler WinError 206 bei zu langen -e-JS-Kommandos → gelöst durch temporäre JS-Dateien
+
+Analyse von Fehlerursachen per traceback.print_exc() im FastAPI-Errorhandling
+
+Probleme mit fetch(...)-Barrieren (z. B. CSP oder CORS) wurden über try/catch im JS-Code abgefangen
