@@ -4,6 +4,7 @@ from core.axe import run_axe_scan
 from core.css_checker import check_css_contrast
 from core.html_parser import extract_structure_from_html
 from core.validator import validate_structure
+from core.aria_checker import check_aria_usage
 from models import URLRequest
 import traceback
 
@@ -32,7 +33,7 @@ def check_all(request: URLRequest):
             try:
                 css_combined = extract_css_from_url(request.url)
 
-                # 🔪 Debug-Ausgabe: Zeigt, ob CSS wirklich geladen wurde
+                # 🔪 Debug-Ausgabe
                 print("💡 Extrahiertes CSS (erste 500 Zeichen):\n")
                 print(css_combined[:500])
                 print("\n--- ENDE DEBUG CSS ---\n")
@@ -76,6 +77,9 @@ def check_all(request: URLRequest):
         structure = extract_structure_from_html(html)
         structural_issues = validate_structure(structure)
 
+        # 4b. ARIA-Analyse
+        aria_issues = check_aria_usage(html)
+
         # 5. Zusammenfassen
         return {
             "source": source,
@@ -83,12 +87,14 @@ def check_all(request: URLRequest):
                 "axe_errors": len(axe_result.get("violations", [])),
                 "structural_issues": len(structural_issues),
                 "css_issues": len(css_issues),
-                "total_errors": len(axe_result.get("violations", [])) + len(css_issues) + len(structural_issues),
+                "aria_issues": len(aria_issues),
+                "total_errors": len(axe_result.get("violations", [])) + len(css_issues) + len(structural_issues) + len(aria_issues),
                 "warnings": len(axe_result.get("incomplete", [])),
             },
             "axe_violations": axe_result.get("violations", []),
             "structural_issues": structural_issues,
             "css_issues": css_issues,
+            "aria_issues": aria_issues,
             "incomplete_warnings": axe_result.get("incomplete", []),
         }
 

@@ -202,4 +202,4 @@ Windows-spezifischer Fehler WinError 206 bei zu langen -e-JS-Kommandos → gelö
 
 Analyse von Fehlerursachen per traceback.print_exc() im FastAPI-Errorhandling
 
-Probleme mit fetch(...)-Barrieren (z. B. CSP oder CORS) wurden über try/catch im JS-Code abgefangen
+🌐 Probleme mit fetch(...)-Barrieren (z. B. CSP oder CORS) wurden über try/catch im JS-Code abgefangen
