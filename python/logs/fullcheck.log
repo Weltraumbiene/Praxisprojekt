@@ -1,0 +1,133 @@
+2025-04-10 18:21:06 [INFO] \U0001f310 Starte Crawl für https://www.benclaus.de
+2025-04-10 18:21:07 [INFO] \U0001f517 1 Seiten gefunden beim Crawl.
+2025-04-10 18:21:07 [INFO] \U0001f50d Scanne https://www.benclaus.de
+2025-04-10 18:21:13 [INFO] \u2705 Scan erfolgreich für https://www.benclaus.de
+2025-04-10 18:21:13 [INFO] \U0001f4dd Scan abgeschlossen für https://www.benclaus.de – 1 Seiten verarbeitet
+2025-04-10 18:22:01 [INFO] \U0001f310 Starte Crawl für https://www.a-sqa.de
+2025-04-10 18:22:02 [INFO] \U0001f517 25 Seiten gefunden beim Crawl.
+2025-04-10 18:22:02 [INFO] \U0001f50d Scanne https://www.a-sqa.de
+2025-04-10 18:22:02 [INFO] \U0001f50d Scanne https://www.a-sqa.de/author/obiwan/
+2025-04-10 18:22:02 [INFO] \U0001f50d Scanne https://www.a-sqa.de/
+2025-04-10 18:22:02 [INFO] \U0001f50d Scanne https://www.a-sqa.de/en/
+2025-04-10 18:22:02 [INFO] \U0001f50d Scanne https://www.a-sqa.de/lotto/
+2025-04-10 18:22:14 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/author/obiwan/
+2025-04-10 18:22:14 [INFO] \U0001f50d Scanne https://www.a-sqa.de/
+2025-04-10 18:22:16 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de
+2025-04-10 18:22:16 [INFO] \U0001f50d Scanne javascript:;
+2025-04-10 18:22:16 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/
+2025-04-10 18:22:16 [INFO] \U0001f50d Scanne javascript:;
+2025-04-10 18:22:16 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/en/
+2025-04-10 18:22:16 [INFO] \U0001f50d Scanne javascript:;
+2025-04-10 18:22:16 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/lotto/
+2025-04-10 18:22:16 [INFO] \U0001f50d Scanne javascript:;
+2025-04-10 18:22:18 [WARNING] \u274c Fehler beim Scan von javascript:;: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at javascript:;
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpukpwze4z.js:7:5
+
+2025-04-10 18:22:18 [INFO] \U0001f50d Scanne javascript:;
+2025-04-10 18:22:18 [WARNING] \u274c Fehler beim Scan von javascript:;: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at javascript:;
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmp8qykmhru.js:7:5
+
+2025-04-10 18:22:18 [INFO] \U0001f50d Scanne mailto:bewerbung@a-sqa.de
+2025-04-10 18:22:18 [WARNING] \u274c Fehler beim Scan von javascript:;: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at javascript:;
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpe8bh74ic.js:7:5
+
+2025-04-10 18:22:18 [INFO] \U0001f50d Scanne mailto:bewerbung@a-sqa.de
+2025-04-10 18:22:18 [WARNING] \u274c Fehler beim Scan von javascript:;: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at javascript:;
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmppaqb57c1.js:7:5
+
+2025-04-10 18:22:18 [INFO] \U0001f50d Scanne mailto:bewerbung@a-sqa.de
+2025-04-10 18:22:21 [WARNING] \u274c Fehler beim Scan von mailto:bewerbung@a-sqa.de: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at mailto:bewerbung@a-sqa.de
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmp8o9roa6m.js:7:5
+
+2025-04-10 18:22:21 [INFO] \U0001f50d Scanne https://www.a-sqa.de/datenschutzerklaerung/
+2025-04-10 18:22:21 [WARNING] \u274c Fehler beim Scan von javascript:;: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at javascript:;
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpi834b6cw.js:7:5
+
+2025-04-10 18:22:21 [INFO] \U0001f50d Scanne https://www.a-sqa.de/datenschutzerklaerung/
+2025-04-10 18:22:21 [WARNING] \u274c Fehler beim Scan von mailto:bewerbung@a-sqa.de: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at mailto:bewerbung@a-sqa.de
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmp3zt6f77b.js:7:5
+
+2025-04-10 18:22:21 [INFO] \U0001f50d Scanne tel:00493093664760
+2025-04-10 18:22:21 [WARNING] \u274c Fehler beim Scan von mailto:bewerbung@a-sqa.de: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at mailto:bewerbung@a-sqa.de
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpusytpipt.js:7:5
+
+2025-04-10 18:22:21 [INFO] \U0001f50d Scanne mailto:info@a-sqa.de
+2025-04-10 18:22:24 [WARNING] \u274c Fehler beim Scan von tel:00493093664760: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at tel:00493093664760
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpmyzll5_q.js:7:5
+
+2025-04-10 18:22:24 [INFO] \U0001f50d Scanne tel:00493093664760
+2025-04-10 18:22:24 [WARNING] \u274c Fehler beim Scan von mailto:info@a-sqa.de: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at mailto:info@a-sqa.de
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpdghoewwm.js:7:5
+
+2025-04-10 18:22:24 [INFO] \U0001f50d Scanne mailto:info@a-sqa.de
+2025-04-10 18:22:26 [WARNING] \u274c Fehler beim Scan von mailto:info@a-sqa.de: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at mailto:info@a-sqa.de
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpb0dw0d3u.js:7:5
+
+2025-04-10 18:22:26 [INFO] \U0001f50d Scanne https://www.a-sqa.de/impressum/
+2025-04-10 18:22:26 [WARNING] \u274c Fehler beim Scan von tel:00493093664760: 500: Fehler beim Seitenladen: Error: net::ERR_ABORTED at tel:00493093664760
+    at navigate (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:183:27)
+    at async Deferred.race (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:149:25)
+    at async CdpPage.goto (C:\Users\BFRANN~1\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:574:20)
+    at async C:\Users\BFRANN~1\AppData\Local\Temp\tmpy8owh8mr.js:7:5
+
+2025-04-10 18:22:26 [INFO] \U0001f50d Scanne https://www.a-sqa.de/author/vanessa/
+2025-04-10 18:22:26 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/
+2025-04-10 18:22:26 [INFO] \U0001f50d Scanne https://www.a-sqa.de/author/admin/
+2025-04-10 18:22:33 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/datenschutzerklaerung/
+2025-04-10 18:22:33 [INFO] \U0001f50d Scanne https://www.a-sqa.de/legal/
+2025-04-10 18:22:33 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/datenschutzerklaerung/
+2025-04-10 18:22:33 [INFO] \U0001f50d Scanne https://www.a-sqa.de/datenschutzerklaerung-en/
+2025-04-10 18:22:36 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/author/vanessa/
+2025-04-10 18:22:36 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/impressum/
+2025-04-10 18:22:37 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/author/admin/
+2025-04-10 18:22:42 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/legal/
+2025-04-10 18:22:42 [INFO] \u2705 Scan erfolgreich für https://www.a-sqa.de/datenschutzerklaerung-en/
+2025-04-10 18:22:42 [INFO] \U0001f4dd Scan abgeschlossen für https://www.a-sqa.de – 25 Seiten verarbeitet
+2025-04-10 18:42:42 [INFO] \U0001f310 Starte Crawl für https://www.benclaus.de
+2025-04-10 18:42:42 [INFO] \U0001f517 1 Seiten gefunden beim Crawl.
+2025-04-10 18:42:42 [INFO] \U0001f50d Scanne https://www.benclaus.de
