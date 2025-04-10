@@ -18,7 +18,8 @@ def run_axe_scan(url: str = None, html: str = None, tags: list[str] = None) -> d
         (async () => {{
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
-            await page.goto("{url}");
+            await page.setDefaultNavigationTimeout(60000);
+            await page.goto("{url}", {{ timeout: 60000, waitUntil: 'networkidle2' }});
             await page.addScriptTag({{ url: 'https://cdn.jsdelivr.net/npm/axe-core@4.3.5/axe.min.js' }});
 
             const results = await page.evaluate(async (tags) => {{
@@ -42,6 +43,7 @@ def run_axe_scan(url: str = None, html: str = None, tags: list[str] = None) -> d
         (async () => {{
             const browser = await puppeteer.launch();
             const page = await browser.newPage();
+            await page.setDefaultNavigationTimeout(60000);
             await page.setContent(`{html_escaped}`);
             await page.addScriptTag({{ url: 'https://cdn.jsdelivr.net/npm/axe-core@4.3.5/axe.min.js' }});
 
@@ -67,8 +69,11 @@ def run_axe_scan(url: str = None, html: str = None, tags: list[str] = None) -> d
     try:
         result = subprocess.run(["node", js_path], capture_output=True, text=True, encoding='utf-8')
         if result.returncode != 0:
+            print("💥 AXE SCAN FEHLER:")
+            print(result.stderr[:500])  # Optional: nur die ersten 500 Zeichen
             raise RuntimeError(f"AXE Scan Fehler: {result.stderr.strip()}")
         return json.loads(result.stdout)
     finally:
-        # 🧹 Aufräumen
         os.remove(js_path)
+
+

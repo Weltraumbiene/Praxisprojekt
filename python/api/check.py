@@ -32,7 +32,7 @@ def check_all(request: URLRequest):
             try:
                 css_combined = extract_css_from_url(request.url)
 
-                # 🧪 Debug-Ausgabe: Zeigt, ob CSS wirklich geladen wurde
+                # 🔪 Debug-Ausgabe: Zeigt, ob CSS wirklich geladen wurde
                 print("💡 Extrahiertes CSS (erste 500 Zeichen):\n")
                 print(css_combined[:500])
                 print("\n--- ENDE DEBUG CSS ---\n")
@@ -42,7 +42,35 @@ def check_all(request: URLRequest):
                 css_issues.append(f"Fehler beim CSS-Extrahieren: {str(e)}")
 
         # 3. AXE-Scan (technische Barrierefreiheit)
-        axe_result = run_axe_scan(html=html, tags=request.filter or [])
+        try:
+            axe_result = run_axe_scan(html=html, tags=request.filter or [])
+        except RuntimeError as axe_error:
+            error_msg = str(axe_error).lower()
+
+            if "referenceerror" in error_msg:
+                raise HTTPException(status_code=500, detail={
+                    "type": "javascript-error",
+                    "message": str(axe_error),
+                    "note": "Ein eingebettetes Skript auf der Seite enthält fehlerhafte Variablen oder fehlerhaftes JS."
+                })
+            elif "timeout" in error_msg:
+                raise HTTPException(status_code=500, detail={
+                    "type": "timeout",
+                    "message": str(axe_error),
+                    "note": "Das Laden oder Analysieren der Seite hat zu lange gedauert."
+                })
+            elif "securityerror" in error_msg or "cross-origin" in error_msg:
+                raise HTTPException(status_code=500, detail={
+                    "type": "cross-origin",
+                    "message": str(axe_error),
+                    "note": "Ein Frame oder ein eingebetteter Bereich konnte nicht geprüft werden, da der Zugriff blockiert war (Cross-Origin)."
+                })
+            else:
+                raise HTTPException(status_code=500, detail={
+                    "type": "unknown",
+                    "message": str(axe_error),
+                    "note": "Unbekannter Fehler beim AXE-Scan."
+                })
 
         # 4. Strukturprüfung (semantisch)
         structure = extract_structure_from_html(html)
