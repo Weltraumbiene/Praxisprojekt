@@ -203,3 +203,11 @@ Windows-spezifischer Fehler WinError 206 bei zu langen -e-JS-Kommandos → gelö
 Analyse von Fehlerursachen per traceback.print_exc() im FastAPI-Errorhandling
 
 🌐 Probleme mit fetch(...)-Barrieren (z. B. CSP oder CORS) wurden über try/catch im JS-Code abgefangen
+
+16.04.2025 - 7.30
+Pflege des GitProfils. Aufräumen von Junk-Dateien. In den letzten Tagen nicht viel gemacht, da andere Arbeit vorang hatte.
+Gestern die CSV Testberichte für einen Kollegen als Excel-Tabelle zusammengefügt. Teammeeting über die Pro's und Contra's der aktuellen
+Testberichte. Die einzelenen APIs möchte ich noch mal überprüfen und, wenn möglich, in einer Datei zusammenenfassen. Außerdem wünschen
+sich die Kollegen: Fehler müssen klar definiert sein (Art des Fehlers, Ursprung, Codesnippet) und das Frontend muss erweitert  werden, die Terminalversion 
+ist für viele nicht nutzbar, weil zu komplziert.
+Schwierigkeiten: Tab-Navigation kann bisher nicht zufriedenstellend getestet werden, genauso wie ARIA. Kommunikation zwischen Frontend und BackEnd ist holprig.
