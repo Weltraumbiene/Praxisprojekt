@@ -83,11 +83,11 @@ xlsx_file = os.path.join(EXCEL_DIR, f"{base_name}.xlsx")
 if not pages:
     print("⚠️ Keine Ergebnisse erhalten.")
 else:
-    # JSON speichern (optional für spätere Nutzung)
+    # JSON speichern (optional)
     with open(json_file, "w", encoding="utf-8") as f:
         json.dump(pages, f, indent=2, ensure_ascii=False)
 
-    # CSV speichern (optional für spätere Nutzung)
+    # CSV speichern (optional)
     with open(csv_file, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerow(["URL", "AXE Errors", "Structural Issues", "CSS Issues", "ARIA Issues", "Warnings", "Total Errors"])
@@ -103,7 +103,7 @@ else:
                 summary.get("total_errors", 0),
             ])
 
-    # Excel-Datei mit Details erstellen
+    # Excel-Datei mit deduplizierten Einträgen erstellen
     wb = Workbook()
     ws = wb.active
     ws.title = "Accessibility-Report"
@@ -114,7 +114,6 @@ else:
     ]
     ws.append(headers)
 
-    # Kopfzeile formatieren
     header_font = Font(bold=True)
     header_fill = PatternFill(start_color="DCE6F1", end_color="DCE6F1", fill_type="solid")
     for col_num, header in enumerate(headers, 1):
@@ -122,6 +121,8 @@ else:
         cell.font = header_font
         cell.fill = header_fill
         cell.alignment = Alignment(horizontal="center", vertical="center")
+
+    seen = set()  # Neue Datenstruktur zum Deduplizieren
 
     for page in pages:
         page_url = page.get("url", "")
@@ -136,21 +137,35 @@ else:
             if isinstance(issues, list):
                 for issue in issues:
                     if issue_type == "css_issues":
-                        ws.append([page_url, label, "Niedrig", issue, "", "", "CSS", ""])
+                        key = (
+                            page_url,
+                            label,
+                            "Niedrig",
+                            issue.get("message", ""),
+                            issue.get("snippet", ""),
+                            issue.get("selector", ""),
+                            "CSS",
+                            ""
+                        )
+                        if key not in seen:
+                            ws.append(list(key))
+                            seen.add(key)
                     else:
                         for node in issue.get("nodes", []):
-                            ws.append([
+                            key = (
                                 page_url,
                                 label,
-                                get_priority(node.get("impact", "minor")),
+                                get_priority(issue.get("impact", "minor")),
                                 issue.get("description", ""),
                                 node.get("html", ""),
                                 ", ".join(node.get("target", [])),
                                 ", ".join(issue.get("tags", [])),
-                                issue.get("helpUrl", "")
-                            ])
+                                issue.get("help_url", "")
+                            )
+                            if key not in seen:
+                                ws.append(list(key))
+                                seen.add(key)
 
-    # Spaltenbreite anpassen
     for col in ws.columns:
         max_len = max((len(str(cell.value)) if cell.value else 0) for cell in col)
         ws.column_dimensions[get_column_letter(col[0].column)].width = min(max_len + 5, 60)

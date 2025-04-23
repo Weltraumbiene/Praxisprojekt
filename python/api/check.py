@@ -16,8 +16,9 @@ def check_all(request: URLRequest):
         html = ""
         source = request.url or "HTML-Input"
         css_issues = []
+        css_raw = ""
 
-        # 1. HTML beschaffen
+        # 1. HTML laden
         if request.url:
             result = launch_browser_with_url(request.url)
             html = result["html"]
@@ -26,23 +27,22 @@ def check_all(request: URLRequest):
         else:
             raise HTTPException(status_code=400, detail="Bitte 'url' oder 'html' angeben.")
 
-        # 2. CSS analysieren (optional)
+        # 2. CSS extrahieren oder verwenden
         if request.css:
-            css_issues.extend(check_css_contrast(request.css))
+            css_raw = request.css
+            css_issues.extend(check_css_contrast(css_raw))
         elif request.url:
             try:
-                css_combined = extract_css_from_url(request.url)
-
-                # 🔪 Debug-Ausgabe
-                print("💡 Extrahiertes CSS (erste 500 Zeichen):\n")
-                print(css_combined[:500])
-                print("\n--- ENDE DEBUG CSS ---\n")
-
-                css_issues.extend(check_css_contrast(css_combined))
+                css_raw = extract_css_from_url(request.url)
+                css_issues.extend(check_css_contrast(css_raw))
             except Exception as e:
-                css_issues.append(f"Fehler beim CSS-Extrahieren: {str(e)}")
+                css_issues.append({
+                    "message": f"Fehler beim CSS-Extrahieren: {str(e)}",
+                    "selector": "",
+                    "snippet": ""
+                })
 
-        # 3. AXE-Scan (technische Barrierefreiheit)
+        # 3. AXE prüfen
         try:
             axe_result = run_axe_scan(html=html, tags=request.filter or [])
         except RuntimeError as axe_error:
@@ -52,7 +52,7 @@ def check_all(request: URLRequest):
                 raise HTTPException(status_code=500, detail={
                     "type": "javascript-error",
                     "message": str(axe_error),
-                    "note": "Ein eingebettetes Skript auf der Seite enthält fehlerhafte Variablen oder fehlerhaftes JS."
+                    "note": "Ein eingebettetes Skript enthält Fehler."
                 })
             elif "timeout" in error_msg:
                 raise HTTPException(status_code=500, detail={
@@ -64,7 +64,7 @@ def check_all(request: URLRequest):
                 raise HTTPException(status_code=500, detail={
                     "type": "cross-origin",
                     "message": str(axe_error),
-                    "note": "Ein Frame oder ein eingebetteter Bereich konnte nicht geprüft werden, da der Zugriff blockiert war (Cross-Origin)."
+                    "note": "Ein Frame konnte nicht geprüft werden (Cross-Origin)."
                 })
             else:
                 raise HTTPException(status_code=500, detail={
@@ -73,16 +73,15 @@ def check_all(request: URLRequest):
                     "note": "Unbekannter Fehler beim AXE-Scan."
                 })
 
-        # 4. Strukturprüfung (semantisch)
+        # 4. Semantik & ARIA prüfen
         structure = extract_structure_from_html(html)
         structural_issues = validate_structure(structure)
-
-        # 4b. ARIA-Analyse
         aria_issues = check_aria_usage(html)
 
-        # 5. Zusammenfassen
+        # 5. Rückgabe
         return {
             "source": source,
+            "css_raw": css_raw,  # wird von fullcheck.py verwendet zum Hashen
             "summary": {
                 "axe_errors": len(axe_result.get("violations", [])),
                 "structural_issues": len(structural_issues),
@@ -91,11 +90,45 @@ def check_all(request: URLRequest):
                 "total_errors": len(axe_result.get("violations", [])) + len(css_issues) + len(structural_issues) + len(aria_issues),
                 "warnings": len(axe_result.get("incomplete", [])),
             },
-            "axe_violations": axe_result.get("violations", []),
+            "axe_violations": [
+                {
+                    "id": v.get("id"),
+                    "impact": v.get("impact"),
+                    "description": v.get("description"),
+                    "help": v.get("help"),
+                    "help_url": v.get("helpUrl"),
+                    "nodes": [
+                        {
+                            "target": node.get("target", []),
+                            "html": node.get("html", "").strip(),
+                            "failure_summary": node.get("failureSummary", "").strip()
+                        }
+                        for node in v.get("nodes", [])
+                    ]
+                }
+                for v in axe_result.get("violations", [])
+            ],
+            "incomplete_warnings": [
+                {
+                    "id": w.get("id"),
+                    "impact": w.get("impact"),
+                    "description": w.get("description"),
+                    "help": w.get("help"),
+                    "help_url": w.get("helpUrl"),
+                    "nodes": [
+                        {
+                            "target": node.get("target", []),
+                            "html": node.get("html", "").strip(),
+                            "failure_summary": node.get("failureSummary", "").strip()
+                        }
+                        for node in w.get("nodes", [])
+                    ]
+                }
+                for w in axe_result.get("incomplete", [])
+            ],
             "structural_issues": structural_issues,
             "css_issues": css_issues,
             "aria_issues": aria_issues,
-            "incomplete_warnings": axe_result.get("incomplete", []),
         }
 
     except Exception as e:

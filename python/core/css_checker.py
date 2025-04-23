@@ -30,14 +30,15 @@ def contrast_ratio(rgb1, rgb2):
     L1, L2 = max(lum1, lum2), min(lum1, lum2)
     return (L1 + 0.05) / (L2 + 0.05)
 
-def check_css_contrast(css: str) -> list[str]:
+def check_css_contrast(css: str) -> list[dict]:
     errors = []
-
     rules = tinycss2.parse_stylesheet(css, skip_whitespace=True)
+
     for rule in rules:
         if rule.type != 'qualified-rule':
             continue
 
+        selector = rule.prelude and tinycss2.serialize(rule.prelude).strip()
         declarations = tinycss2.parse_declaration_list(rule.content)
         color = None
         background = None
@@ -50,7 +51,7 @@ def check_css_contrast(css: str) -> list[str]:
 
             if name == "color":
                 color = value
-            elif name in ("background-color", "background"):  # <– Erweiterung hier!
+            elif name in ("background-color", "background"):
                 background = value
 
         if color and background:
@@ -60,11 +61,22 @@ def check_css_contrast(css: str) -> list[str]:
                 ratio = contrast_ratio(rgb_fg, rgb_bg)
 
                 if ratio < 4.5:
-                    errors.append(
-                        f"Niedriger Kontrast ({ratio:.2f}:1) zwischen Textfarbe {color} und Hintergrundfarbe {background}"
-                    )
+                    errors.append({
+                        "message": f"Niedriger Kontrast ({ratio:.2f}:1) zwischen Textfarbe {color} und Hintergrundfarbe {background}",
+                        "selector": selector or "",
+                        "foreground": color,
+                        "background": background,
+                        "contrast": round(ratio, 2),
+                        "rule": f"{selector} {{ color: {color}; background: {background}; }}"
+                    })
             except Exception as e:
-                errors.append(f"Fehler bei Farben {color} / {background}: {str(e)}")
+                errors.append({
+                    "message": f"Fehler bei Farben {color} / {background}: {str(e)}",
+                    "selector": selector or "",
+                    "foreground": color,
+                    "background": background,
+                    "contrast": None,
+                    "rule": ""
+                })
 
     return errors
-

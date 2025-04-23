@@ -1,5 +1,3 @@
-# api/fullcheck.py
-
 from fastapi import APIRouter, HTTPException
 from models import URLRequest
 from core.crawler import crawl_website as crawl_site
@@ -9,6 +7,7 @@ import traceback
 import logging
 from datetime import datetime
 import os
+import hashlib
 
 # Setup Logging
 log_dir = "logs"
@@ -23,6 +22,12 @@ logging.basicConfig(
 )
 
 router = APIRouter()
+
+# Globaler CSS-Cache (für Wiederverwendung)
+css_cache = {}
+
+def hash_content(content: str) -> str:
+    return hashlib.md5(content.encode("utf-8")).hexdigest()
 
 @router.post("/full-check")
 def full_accessibility_check(request: URLRequest):
@@ -39,9 +44,23 @@ def full_accessibility_check(request: URLRequest):
         def scan_page(url: str):
             try:
                 logging.info(f"🔍 Scanne {url}")
-                result = check_all(URLRequest(url=url, filter=request.filter))
+                req_obj = URLRequest(url=url, filter=request.filter)
+                result = check_all(req_obj)
+
+                # Deduplizierung der CSS-Fehler über Seiten hinweg
+                css_raw = result.get("css_raw")
+                if css_raw:
+                    css_hash = hash_content(css_raw)
+                    if css_hash in css_cache:
+                        result["css_issues"] = css_cache[css_hash]
+                        logging.info(f"♻️ Wiederverwendete CSS-Analyse für {url}")
+                    else:
+                        css_cache[css_hash] = result.get("css_issues", [])
+                        logging.info(f"💾 Neue CSS-Analyse gespeichert für {url}")
+
                 logging.info(f"✅ Scan erfolgreich für {url}")
                 return {"url": url, "result": result}
+
             except Exception as e:
                 logging.warning(f"❌ Fehler beim Scan von {url}: {e}")
                 return {"url": url, "error": str(e)}
