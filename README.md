@@ -211,3 +211,9 @@ Testberichte. Die einzelenen APIs möchte ich noch mal überprüfen und, wenn m�
 sich die Kollegen: Fehler müssen klar definiert sein (Art des Fehlers, Ursprung, Codesnippet) und das Frontend muss erweitert  werden, die Terminalversion 
 ist für viele nicht nutzbar, weil zu komplziert.
 Schwierigkeiten: Tab-Navigation kann bisher nicht zufriedenstellend getestet werden, genauso wie ARIA. Kommunikation zwischen Frontend und BackEnd ist holprig.
+
+06.05.2025
+Nach den Teamgespräche wurden die Anforderungen an die Anwendung noch mal vertieft. Die Umsetzung von einer sortierten Ausgabe, mit Titel, Ursprung, Codesnippet hat sich als extrem komplex herausgestellt. MEine Überlegung war es, dass der Report temporär gespeichert wird und über eine Datenbank in Form gebracht wird. Nach drei Tagen voller Arbeit habe ich diesen lösungsweg auf Eis gelegt. Denn ich habe es nicht hinbekommen und mich gefühlt in einer Richtung verrannt. 
+
+Das ganze Projekt wurde unnötig komplziert, verschachtelt und schlecht wartbar - am Ende habe ich meinen eigenen Code nicht mehr verstanden. Daher kam mir die Idee noch mal von Neuem anzufangen. Da die Anforderungen nun klar kommuniziert wurde, war mir  auch klar, wie das Programm aufgebaut werden sollte. 
+Ich habe ein Basis Backend und Frontend erstellt und ein einfaches Gerüst erstellt, um die alten APIs und funktionen sauber in das neue Projekt einzuarbeiten. (siehe Git Commit Nr. https://github.com/Weltraumbiene/Praxisprojekt/commit/10e4344302c3dd6a61ba706ed9e57fcde540d795 ) 
