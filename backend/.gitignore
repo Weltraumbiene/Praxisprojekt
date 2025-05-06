@@ -20,3 +20,6 @@ Thumbs.db
 # FastAPI temporary files (optional)
 scan_results.csv
 scan_results.html
+
+# Reports Ordner
+reports/
