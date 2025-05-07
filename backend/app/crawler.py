@@ -18,12 +18,17 @@ def crawl_website(base_url):
             response = requests.get(url)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
-                pages.append(url)
+                pages.append({
+                    "url": url,
+                    "soup": soup
+                })
+
                 for link in soup.find_all('a', href=True):
                     link_url = urllib.parse.urljoin(url, link['href'])
                     if link_url.startswith(base_url) and link_url not in visited:
                         to_visit.append(link_url)
-        except:
+        except Exception as e:
+            print(f"Fehler beim Laden von {url}: {e}")
             continue
 
-    return {'pages': pages}
+    return {"pages": pages}

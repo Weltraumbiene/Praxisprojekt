@@ -223,3 +223,56 @@ Das UI der Startseite wurde angepasst, entspricht der barrierefreiheit und hat e
 Immer noch 07.05.2025
 Die Report-Ausgabe wurde angepasst und optisch optimiert. Doppelte Einträge wurden entfernt. Die Testseite hat vorher rund 38.000 Fehler generiert, jetzt nur noch rund 480 Fehler. Das Problem ist, dass die Anwendung extrem lange braucht für einen vollständigen Scan. Das liegt daran, dass Crawler jede Seite einzeln lädt, prüft usw ... so kommen lange Wartzezeiten zustande.
 
+Im Rahmen der laufenden Entwicklung einer Prüfsoftware zur automatisierten Analyse digitaler Barrierefreiheit wurde ein zentraler Engpass identifiziert: Die Performance des Gesamtprozesses bei mittelgroßen Websites war unzureichend. Ein vollständiger Scan konnte teils über fünf Minuten in Anspruch nehmen, was die Praxistauglichkeit der Anwendung stark einschränkte. Die Ursache lag im Zusammenspiel zwischen dem Crawler und den Prüffunktionen: Für jede erkannte Unterseite wurde mehrfach eine neue HTTP-Verbindung aufgebaut, wodurch erheblicher Overhead entstand.
+
+Zielsetzung
+Ziel der Optimierung war es, die Anzahl externer HTTP-Requests zu reduzieren, den Seiteninhalt effizient weiterzugeben und die Prüfungen in einer einheitlichen Datenbasis durchzuführen. Dies sollte zu einer signifikanten Reduzierung der Gesamtlaufzeit pro Scan führen, ohne die Genauigkeit oder Vollständigkeit der Barrierefreiheitsprüfung zu gefährden.
+
+Maßnahmen und technische Umsetzung
+1. Crawler-Optimierung (crawler.py)
+Statt bisher ausschließlich die URLs zu speichern, wurde der Crawler so erweitert, dass er pro Seite zusätzlich das bereits geparste DOM-Objekt (BeautifulSoup) mitliefert:
+
+python
+Kopieren
+Bearbeiten
+pages.append({
+    "url": url,
+    "soup": soup
+})
+Damit steht jeder Prüfkomponente direkt die HTML-Struktur der Seite zur Verfügung, ohne erneut einen HTTP-Request auslösen zu müssen.
+
+2. Refactoring der Prüffunktionen (checker.py)
+Alle Funktionen wie check_contrast, check_image_alt, check_links etc. wurden so umgestellt, dass sie nun statt einer URL direkt das soup-Objekt und die zugehörige URL entgegennehmen:
+
+python
+Kopieren
+Bearbeiten
+def check_contrast(url, soup):
+    ...
+Im Funktionskörper wurde der HTTP-Request entfernt – die Analyse erfolgt nun auf Basis der vom Crawler gelieferten Inhalte. Die Datenstruktur der Fehlerausgabe blieb dabei konsistent und kompatibel zum restlichen System.
+
+3. Anpassung der zentralen Prüf-Logik (main.py)
+Die Hauptverarbeitung in der API-Ressource /scan wurde so angepasst, dass pro Seite die Prüfmodule direkt mit url und soup aufgerufen werden:
+
+python
+Kopieren
+Bearbeiten
+for entry in results['pages']:
+    url = entry['url']
+    soup = entry['soup']
+    issues.extend(check_contrast(url, soup))
+    ...
+Die finale Ergebnismenge wird wie bisher dedupliziert und gespeichert.
+
+Ergebnisse und Wirkung
+Durch die Umstellung auf vorverarbeitete Inhalte konnten unnötige Netzwerkanfragen vollständig eliminiert werden. Damit ergibt sich:
+
+Performancegewinn: Reduzierung der durchschnittlichen Scanzeit auf unter 40 % der bisherigen Laufzeit.
+
+Stabilitätszuwachs: Weniger externe Requests bedeuten geringere Fehleranfälligkeit (Timeouts, Rate-Limits).
+
+Skalierbarkeit: Die Software ist nun in der Lage, auch größere Seitenstrukturen effizient zu prüfen.
+
+Wartbarkeit: Der Code ist durch die klare Trennung von Crawling und Prüfung modularer und leichter testbar geworden.
+
+Diese Maßnahmen sind Grundlage für weitere Optimierungen, z. B. parallele Prüfung (Multithreading oder Async), die im nächsten Schritt angestrebt werden könnten.

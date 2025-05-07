@@ -1,5 +1,4 @@
 # Anwendung\backend\app\main.py
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -35,17 +34,20 @@ class ScanRequest(BaseModel):
 @app.post("/scan")
 async def scan_website(scan_request: ScanRequest):
     try:
-        results = crawl_website(scan_request.url)
+        result = crawl_website(scan_request.url)
         issues = []
 
-        for page_url in results['pages']:
-            issues.extend(check_contrast(page_url))
-            issues.extend(check_image_alt(page_url))
-            issues.extend(check_links(page_url))
-            issues.extend(check_buttons(page_url))
-            issues.extend(check_labels(page_url))
-            issues.extend(check_headings(page_url))
-            issues.extend(check_aria_roles(page_url))
+        for page in result['pages']:
+            url = page['url']
+            soup = page['soup']
+
+            issues.extend(check_contrast(url, soup))
+            issues.extend(check_image_alt(url, soup))
+            issues.extend(check_links(url, soup))
+            issues.extend(check_buttons(url, soup))
+            issues.extend(check_labels(url, soup))
+            issues.extend(check_headings(url, soup))
+            issues.extend(check_aria_roles(url, soup))
 
         # Deduplizieren nach (type, snippet)
         seen = set()
@@ -63,7 +65,6 @@ async def scan_website(scan_request: ScanRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # GET /download-csv: Liefert den letzten Bericht als CSV
 @app.get("/download-csv")
 async def download_csv():
@@ -71,7 +72,6 @@ async def download_csv():
         return generate_csv()
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # GET /download-html: Liefert den letzten Bericht als HTML
 @app.get("/download-html")
