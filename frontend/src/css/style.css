@@ -104,3 +104,21 @@ body {
     margin-block-end: 1rem;
     overflow-x: auto;
 }
+
+.loading-container {
+    text-align: center;
+    margin: 2rem 0;
+  }
+  
+  .loading-icon {
+    inline-size: 64px;
+    block-size: 64px;
+    margin-block-end: 1rem;
+    animation: spin 2s linear infinite;
+  }
+  
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+  }
+  

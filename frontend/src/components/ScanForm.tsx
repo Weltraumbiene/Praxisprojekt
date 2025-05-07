@@ -1,5 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../css/style.css';
+import loadingIcon from '../images/loading.png';
+import scanSteps from '../data/scanSteps.json'; // JSON importieren
 
 const ScanForm: React.FC = () => {
   const [url, setUrl] = useState('https://');
@@ -7,6 +9,30 @@ const ScanForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanComplete, setScanComplete] = useState(false);
+  const [statusText, setStatusText] = useState("Initialisiere Scanner...");
+
+  // zufällige Statusmeldung anzeigen, solange loading aktiv ist
+  useEffect(() => {
+    let timeout: NodeJS.Timeout;
+  
+    const showRandomStep = () => {
+      const randomIndex = Math.floor(Math.random() * scanSteps.length);
+      setStatusText(scanSteps[randomIndex]);
+  
+      // Zufällige nächste Laufzeit zwischen 2 und 5 Sekunden
+      const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
+      timeout = setTimeout(showRandomStep, delay);
+    };
+  
+    if (loading) {
+      showRandomStep(); // erste Ausführung starten
+    } else {
+      setStatusText("");
+    }
+  
+    return () => clearTimeout(timeout);
+  }, [loading]);
+  
 
   const handleScan = async () => {
     setLoading(true);
@@ -51,6 +77,13 @@ const ScanForm: React.FC = () => {
       </div>
 
       {error && <div className="error">{error}</div>}
+
+      {loading && (
+        <div className="loading-container">
+          <img src={loadingIcon} alt="Lade..." className="loading-icon" />
+          <p>{statusText}</p>
+        </div>
+      )}
 
       {scanComplete && !loading && (
         <>
