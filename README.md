@@ -220,3 +220,6 @@ Ich habe ein Basis Backend mit Python und Frontend in React erstellt und ein ein
 
 07.05.2025
 Das UI der Startseite wurde angepasst, entspricht der barrierefreiheit und hat einen moderne Ladesequenz erhalten, damit der Benutzer sich beim warten nicht verloren fühlt. Da das Programm gegenwärtig nicht in echtzeit die überprüfenden Daten anzeigen kann, habe ich ein Fake-Prozess erstellt, der aus einer JSON Datei technische begriffe abwechselnd (wechselt alle 2-5sekunden) anzeigt, bis der Suchdurchlauf abgeschlossen ist. Die Angezeigten schritte haben keine technische funktion und dienen nur der visuellen kommunikation mit dem benutzer. 
+Immer noch 07.05.2025
+Die Report-Ausgabe wurde angepasst und optisch optimiert. Doppelte Einträge wurden entfernt. Die Testseite hat vorher rund 38.000 Fehler generiert, jetzt nur noch rund 480 Fehler. Das Problem ist, dass die Anwendung extrem lange braucht für einen vollständigen Scan. Das liegt daran, dass Crawler jede Seite einzeln lädt, prüft usw ... so kommen lange Wartzezeiten zustande.
+
