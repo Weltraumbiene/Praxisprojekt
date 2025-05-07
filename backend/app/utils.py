@@ -1,13 +1,9 @@
-#Anwendung\backend\app\utils.py
 import csv
 import os
+import html
 from datetime import datetime
 from urllib.parse import urlparse
 from fastapi.responses import FileResponse
-
-# Externe Abhängigkeit für Website-Titel entfernen, weil wir echten Scan-Daten vertrauen
-# import requests
-# from bs4 import BeautifulSoup
 
 # NEU: Global gespeicherte letzte Scan-Daten
 latest_issues = []
@@ -63,10 +59,37 @@ def generate_html():
     
     filepath, filename = create_filename(latest_website, "html")
 
-    html_content = "<html><body><h1>Accessibility Issues</h1><table border='1'><tr><th>ID</th><th>Issue</th><th>Description</th><th>URL</th><th>Snippet</th></tr>"
+    html_content = """
+    <html>
+    <head>
+        <meta charset="UTF-8">
+        <title>Accessibility Report</title>
+        <style>
+            body { font-family: Arial, sans-serif; margin: 2rem; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; vertical-align: top; }
+            th { background-color: #f2f2f2; }
+            pre { white-space: pre-wrap; word-wrap: break-word; }
+        </style>
+    </head>
+    <body>
+        <h1>Accessibility Issues</h1>
+        <table>
+            <tr><th>ID</th><th>Issue</th><th>Description</th><th>URL</th><th>Snippet</th></tr>
+    """
 
     for idx, issue in enumerate(latest_issues, start=1):
-        html_content += f"<tr><td>{idx}</td><td>{issue.get('type', 'Unbekannt')}</td><td>{issue.get('description', 'Keine Beschreibung')}</td><td>{issue.get('url', 'Unbekannt')}</td><td>{issue.get('snippet', '-')}</td></tr>"
+        snippet = html.escape(issue.get('snippet', '-'))
+        url = issue.get("url", "Unbekannt")
+        html_content += (
+            f"<tr>"
+            f"<td>{idx}</td>"
+            f"<td>{issue.get('type', 'Unbekannt')}</td>"
+            f"<td>{issue.get('description', 'Keine Beschreibung')}</td>"
+            f"<td><a href='{url}'>{url}</a></td>"
+            f"<td><pre>{snippet}</pre></td>"
+            f"</tr>"
+        )
 
     html_content += "</table></body></html>"
 

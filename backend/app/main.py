@@ -1,8 +1,9 @@
-#Anwendung\backend\app\main.py
 # Anwendung\backend\app\main.py
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+
 from .crawler import crawl_website
 from .checker import (
     check_contrast,
@@ -20,7 +21,7 @@ app = FastAPI()
 # CORS für Frontend erlauben
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Frontend URL
+    allow_origins=["http://localhost:5173"],  # ggf. später anpassen
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -30,7 +31,7 @@ app.add_middleware(
 class ScanRequest(BaseModel):
     url: str
 
-# Webseite scannen
+# POST /scan: Führt alle Prüfungen durch und speichert die Ergebnisse
 @app.post("/scan")
 async def scan_website(scan_request: ScanRequest):
     try:
@@ -46,13 +47,24 @@ async def scan_website(scan_request: ScanRequest):
             issues.extend(check_headings(page_url))
             issues.extend(check_aria_roles(page_url))
 
-        save_latest_scan(issues, scan_request.url)
-        return {"issues": issues}
+        # Deduplizieren nach (type, snippet)
+        seen = set()
+        unique_issues = []
+        for issue in issues:
+            key = (issue.get("type"), issue.get("snippet"))
+            if key not in seen:
+                seen.add(key)
+                unique_issues.append(issue)
+
+        # Ergebnisse speichern
+        save_latest_scan(unique_issues, scan_request.url)
+        return {"issues": unique_issues}
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# CSV-Report generieren
+
+# GET /download-csv: Liefert den letzten Bericht als CSV
 @app.get("/download-csv")
 async def download_csv():
     try:
@@ -60,7 +72,8 @@ async def download_csv():
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
-# HTML-Report generieren
+
+# GET /download-html: Liefert den letzten Bericht als HTML
 @app.get("/download-html")
 async def download_html():
     try:
