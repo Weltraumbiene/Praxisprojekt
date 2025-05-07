@@ -34,12 +34,12 @@ def generate_csv():
     """Erzeugt eine CSV-Datei aus den letzten Scan-Daten"""
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für CSV-Export.")
-    
+
     filepath, filename = create_filename(latest_website, "csv")
 
     with open(filepath, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
-        writer.writerow(["ID", "Issue", "Description", "URL", "Code Snippet"])
+        writer.writerow(["ID", "Fehlertyp", "Beschreibung", "URL", "Codeauszug"])
 
         for idx, issue in enumerate(latest_issues, start=1):
             writer.writerow([
@@ -56,26 +56,30 @@ def generate_html():
     """Erzeugt eine HTML-Datei aus den letzten Scan-Daten"""
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für HTML-Export.")
-    
+
     filepath, filename = create_filename(latest_website, "html")
 
-    html_content = """
-    <html>
+    html_content = f"""
+    <!DOCTYPE html>
+    <html lang='de'>
     <head>
-        <meta charset="UTF-8">
-        <title>Accessibility Report</title>
+        <meta charset='UTF-8'>
+        <title>Barrierefreiheitsreport – {latest_website}</title>
         <style>
-            body { font-family: Arial, sans-serif; margin: 2rem; }
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid #ccc; padding: 0.5rem; text-align: left; vertical-align: top; }
-            th { background-color: #f2f2f2; }
-            pre { white-space: pre-wrap; word-wrap: break-word; }
+            body {{ font-family: Arial, sans-serif; margin: 2rem; color: #222; }}
+            h1 {{ font-size: 1.5rem; margin-bottom: 1rem; }}
+            table {{ border-collapse: collapse; width: 100%; font-size: 0.95rem; }}
+            th, td {{ border: 1px solid #ccc; padding: 0.5rem; text-align: left; vertical-align: top; }}
+            th {{ background-color: #f2f2f2; }}
+            a {{ color: #0057D9; text-decoration: none; }}
+            a:hover {{ text-decoration: underline; }}
+            pre {{ white-space: pre-wrap; word-break: break-word; margin: 0; }}
         </style>
     </head>
     <body>
-        <h1>Accessibility Issues</h1>
+        <h1>Barrierefreiheitsreport – {latest_website}</h1>
         <table>
-            <tr><th>ID</th><th>Issue</th><th>Description</th><th>URL</th><th>Snippet</th></tr>
+            <tr><th>ID</th><th>Fehlertyp</th><th>Beschreibung</th><th>URL</th><th>Codeauszug</th></tr>
     """
 
     for idx, issue in enumerate(latest_issues, start=1):
@@ -91,7 +95,11 @@ def generate_html():
             f"</tr>"
         )
 
-    html_content += "</table></body></html>"
+    html_content += """
+        </table>
+    </body>
+    </html>
+    """
 
     with open(filepath, "w", encoding='utf-8') as f:
         f.write(html_content)

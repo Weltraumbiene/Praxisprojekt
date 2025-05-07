@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import '../css/style.css';
 import loadingIcon from '../images/loading.png';
-import scanSteps from '../data/scanSteps.json'; // JSON importieren
+import scanSteps from '../data/scanSteps.json';
 
 const ScanForm: React.FC = () => {
   const [url, setUrl] = useState('https://');
@@ -11,28 +11,25 @@ const ScanForm: React.FC = () => {
   const [scanComplete, setScanComplete] = useState(false);
   const [statusText, setStatusText] = useState("Initialisiere Scanner...");
 
-  // zufällige Statusmeldung anzeigen, solange loading aktiv ist
   useEffect(() => {
     let timeout: NodeJS.Timeout;
-  
+
     const showRandomStep = () => {
       const randomIndex = Math.floor(Math.random() * scanSteps.length);
       setStatusText(scanSteps[randomIndex]);
-  
-      // Zufällige nächste Laufzeit zwischen 2 und 5 Sekunden
+
       const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
       timeout = setTimeout(showRandomStep, delay);
     };
-  
+
     if (loading) {
-      showRandomStep(); // erste Ausführung starten
+      showRandomStep();
     } else {
       setStatusText("");
     }
-  
+
     return () => clearTimeout(timeout);
   }, [loading]);
-  
 
   const handleScan = async () => {
     setLoading(true);
@@ -58,6 +55,9 @@ const ScanForm: React.FC = () => {
       setScanComplete(true);
     }
   };
+
+  const countByType = (type: string) =>
+    issues.filter((issue) => issue.type === type).length;
 
   return (
     <div className="container">
@@ -87,6 +87,17 @@ const ScanForm: React.FC = () => {
 
       {scanComplete && !loading && (
         <>
+          <div className="summary-box">
+            <p><strong>Gefundene Fehler insgesamt:</strong> {issues.length}</p>
+            <p>Kontrast-Fehler: {countByType("contrast_insufficient")}</p>
+            <p>Bilder ohne Alt-Text: {countByType("image_alt_missing")}</p>
+            <p>Links ohne Alt-Text: {countByType("link_incomplete")}</p>
+            <p>Semantisch falsche Schaltflächen: {countByType("nonsemantic_button")}</p>
+            <p>Fehlende Formular-Labels: {countByType("form_label_missing")}</p>
+            <p>Überschriftenfehler: {countByType("heading_hierarchy_error")}</p>
+            <p>ARIA-Probleme: {countByType("aria_label_without_text")}</p>
+          </div>
+
           <div className="report-buttons">
             <a href="http://localhost:8000/download-csv" target="_blank" rel="noopener noreferrer">
               <button className="button">Bericht als CSV</button>
@@ -95,17 +106,6 @@ const ScanForm: React.FC = () => {
               <button className="button">Bericht als HTML</button>
             </a>
           </div>
-
-          <h2 className="results-heading">Ergebnisse</h2>
-          {issues.length === 0 ? (
-            <p className="no-results">Keine Ergebnisse</p>
-          ) : (
-            issues.map((issue, index) => (
-              <pre key={index} className="result-item">
-                {JSON.stringify(issue, null, 2)}
-              </pre>
-            ))
-          )}
         </>
       )}
     </div>

@@ -84,8 +84,9 @@ body {
     display: flex;
     gap: 1rem;
     justify-content: center;
-    margin-block-end: 2rem;
+    margin-block-start: 2rem; 
   }
+  
   
   .results-heading {
     text-align: center;
@@ -121,4 +122,18 @@ body {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
   }
+
+  .summary-box {
+    background-color: #f4f7fb;
+    border: 1px solid #cdd8e3;
+    padding: 1.5rem;
+    border-radius: 6px;
+    margin-block-start: 2rem;
+    font-size: 1rem;
+    line-height: 1.6;
+  }
+  .summary-box p {
+    margin: 0.2rem 0;
+  }
+  
   
