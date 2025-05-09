@@ -1,3 +1,4 @@
+# Anwendung\backend\app\main.py
 import csv
 import os
 import html
@@ -5,15 +6,32 @@ from datetime import datetime
 from urllib.parse import urlparse
 from fastapi.responses import FileResponse
 
-# NEU: Global gespeicherte letzte Scan-Daten
+# Globale Daten
 latest_issues = []
 latest_website = ""
+
+# Status-Log für laufenden Scan
+scan_log = {
+    "running": False,
+    "current_page": None,
+    "current_step": None,
+    "errors": [],
+    "last_success": None
+}
+
+def reset_scan_log():
+    scan_log.update({
+        "running": False,
+        "current_page": None,
+        "current_step": None,
+        "errors": [],
+        "last_success": None
+    })
 
 REPORTS_DIR = "reports"
 os.makedirs(REPORTS_DIR, exist_ok=True)
 
 def sanitize_filename(value):
-    """Hilfsfunktion um Dateinamen sicher zu machen"""
     return "".join(c for c in value if c.isalnum() or c in (' ', '_', '-')).rstrip()
 
 def create_filename(website, extension):
@@ -25,22 +43,17 @@ def create_filename(website, extension):
     return os.path.join(REPORTS_DIR, filename), filename
 
 def save_latest_scan(issues, website):
-    """Speichert die aktuellen Scan-Daten"""
     global latest_issues, latest_website
     latest_issues = issues
     latest_website = website
 
 def generate_csv():
-    """Erzeugt eine CSV-Datei aus den letzten Scan-Daten"""
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für CSV-Export.")
-
     filepath, filename = create_filename(latest_website, "csv")
-
     with open(filepath, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["ID", "Fehlertyp", "Beschreibung", "URL", "Codeauszug"])
-
         for idx, issue in enumerate(latest_issues, start=1):
             writer.writerow([
                 idx,
@@ -49,16 +62,12 @@ def generate_csv():
                 issue.get("url", "Unbekannt"),
                 issue.get("snippet", "-")
             ])
-
     return FileResponse(filepath, media_type='text/csv', filename=filename)
 
 def generate_html():
-    """Erzeugt eine HTML-Datei aus den letzten Scan-Daten"""
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für HTML-Export.")
-
     filepath, filename = create_filename(latest_website, "html")
-
     html_content = f"""
     <!DOCTYPE html>
     <html lang='de'>
@@ -81,7 +90,6 @@ def generate_html():
         <table>
             <tr><th>ID</th><th>Fehlertyp</th><th>Beschreibung</th><th>URL</th><th>Codeauszug</th></tr>
     """
-
     for idx, issue in enumerate(latest_issues, start=1):
         snippet = html.escape(issue.get('snippet', '-'))
         url = issue.get("url", "Unbekannt")
@@ -94,14 +102,7 @@ def generate_html():
             f"<td><pre>{snippet}</pre></td>"
             f"</tr>"
         )
-
-    html_content += """
-        </table>
-    </body>
-    </html>
-    """
-
+    html_content += "</table></body></html>"
     with open(filepath, "w", encoding='utf-8') as f:
         f.write(html_content)
-
     return FileResponse(filepath, media_type='text/html', filename=filename)
