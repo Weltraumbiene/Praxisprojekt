@@ -276,3 +276,9 @@ Skalierbarkeit: Die Software ist nun in der Lage, auch größere Seitenstrukture
 Wartbarkeit: Der Code ist durch die klare Trennung von Crawling und Prüfung modularer und leichter testbar geworden.
 
 Diese Maßnahmen sind Grundlage für weitere Optimierungen, z. B. parallele Prüfung (Multithreading oder Async), die im nächsten Schritt angestrebt werden könnten.
+
+orher: Jede Prüfung (z. B. check_contrast, check_image_alt usw.) hat eigenständig eine requests.get(url)-Anfrage gemacht – also 7× HTTP pro Seite.
+
+Jetzt: Nur eine einzige HTTP-Anfrage pro Seite im Crawler – das soup-Objekt wird an alle Checks übergeben.
+
+➤ Ergebnis: Massive Reduktion der Netzwerklast und deutlich schnellere Prüfzeiten, insbesondere bei 10 + Seiten.

@@ -1,20 +1,27 @@
 [
     "Lade Seitenstruktur...",
     "Suche nach HTML-Dokumenten...",
+    "Schreibe in Prüfbericht...",
     "Scanne Verzeichnisse...",
     "Prüfe Header-Tags...",
+    "Bitte warten...",
     "Ermittle Kontrastverhältnisse...",
+    "Schreibe in Prüfbericht...",
     "Analysiere ARIA-Rollen...",
     "Identifiziere fehlende Alt-Texte...",
     "Untersuche Fokus-Reihenfolge...",
+    "Bitte warten...",
     "Validiere semantische Struktur...",
+    "Schreibe in Prüfbericht...",
     "Suche nicht gekennzeichnete Links...",
     "Extrahiere CSS-Klassen...",
     "Simuliere Tastaturnavigation...",
-    "Verarbeite Responsives Design...",
+    "Bitte warten...",
+    "Schreibe in Prüfbericht...",
     "Suche nach versteckten Inhalten...",
     "Analysiere Sichtbarkeit im DOM...",
     "Überprüfe Skalierbarkeit...",
-    "Erstelle Prüfbericht..."
+    "Bitte warten...",
+    "Schreibe in Prüfbericht..."
   ]
   
