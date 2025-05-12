@@ -282,3 +282,69 @@ orher: Jede Prüfung (z. B. check_contrast, check_image_alt usw.) hat eigenst�
 Jetzt: Nur eine einzige HTTP-Anfrage pro Seite im Crawler – das soup-Objekt wird an alle Checks übergeben.
 
 ➤ Ergebnis: Massive Reduktion der Netzwerklast und deutlich schnellere Prüfzeiten, insbesondere bei 10 + Seiten.
+
+12.05.2025
+1. Crawler-Optimierung & Performance
+Die bisherige crawler.py wurde überarbeitet, um doppelte Requests zu vermeiden.
+
+Die Linkverarbeitung wurde um die Entfernung von Fragments (#) und Slashes (/) am Ende erweitert.
+
+Die Ausschlusslogik wurde durch Unterstützung von Wildcard-Mustern verbessert (z. B. /blog/*, /hilfe.html).
+
+Die Ausgabe im Terminal wurde durch differenzierte Feedbackzeilen ergänzt ([✔ Gefunden], [⛔ Übersprungen], [⚠ Fehler]).
+
+2. Backend-Anpassung (main.py)
+Die main.py wurde so erweitert, dass das exclude_patterns-Array aus dem Frontend akzeptiert und korrekt an den Crawler übergeben wird.
+
+Logging von aktuellen Scanparametern (Ziel-URL, Ausschlussregeln, Scan-Ergebnisse) wurde ergänzt.
+
+Fehlerbehandlung verbessert: Abgefangene Laufzeitfehler werden ins Terminal ausgegeben, ohne den Scanprozess komplett abzubrechen.
+
+3. Frontend-Funktion zum URL-Ausschluss
+Das Frontend (ScanForm.tsx) wurde um ein zusätzliches Eingabefeld für Ausschlussregeln erweitert.
+
+Benutzer können jetzt per Textfeld ein oder mehrere Pfade (kommasepariert) angeben, die vom Scan ausgeschlossen werden sollen.
+
+Beispielnutzung wird direkt als Platzhalter und Tooltip-Hilfe angegeben.
+
+1. Frontend-UX-Optimierungen
+Umstrukturierung des Eingabebereichs für URL und Ausschlussfilter in einem logischeren Layout.
+
+Der Toggle-Switch (Einzelseite vs. ganze Website prüfen) wurde neben das URL-Feld verschoben.
+
+Einführung eines Fragezeichen-Icons mit Tooltip für das Ausschlussfeld:
+
+Dynamisch sichtbarer Tooltip mit Anleitungen und Beispielen.
+
+Tooltip kann durch Klick auf ein „x“ wieder geschlossen werden.
+
+Darstellung überarbeitet (Schattierung, Position, Größe).
+
+2. CSS-Erweiterungen
+Anpassung und Verbesserung des bestehenden style.css:
+
+Vergrößerung des HelpCircle-Icons.
+
+Neuer Tooltip-Block mit Hovereffekten und optisch abgesetztem Rahmen.
+
+Stil für das „x“-Symbol im Tooltip (Positionierung, Hover-Farbe).
+
+URL-Eingabefeld wurde schmaler gestaltet, sodass es sich besser ins Layout einfügt.
+
+Verbesserte Responsiveness durch flexWrap und minWidth.
+
+3. Backend-Erweiterung: Einzelseite vs. Komplettscan
+Die main.py wurde erweitert, um den neuen Parameter full: bool zu akzeptieren.
+
+Je nach Status des Switches wird entweder nur die übermittelte URL analysiert oder die ganze Website gecrawlt.
+
+Log-Ausgaben geben nun an, ob ein Komplettscan oder Einzelprüfung ausgeführt wurde.
+
+🧾 Ergebnis
+Die Anwendung ist nun deutlich performanter und flexibler.
+
+Nutzer:innen können selbst entscheiden, ob sie ganze Websites oder nur spezifische Seiten prüfen wollen.
+
+Nicht relevante Bereiche wie z. B. /blog/ können einfach per Textfeld vom Scan ausgeschlossen werden.
+
+Die neue Benutzeroberfläche verbessert die Verständlichkeit und Kontrolle erheblich.
