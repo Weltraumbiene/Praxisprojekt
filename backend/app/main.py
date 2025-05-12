@@ -45,9 +45,8 @@ async def scan_website(scan_request: ScanRequest):
         print("[⚙️  Modus: Nur eingegebene URL wird geprüft]")
 
     try:
-        # Bei full=False keine weiteren Seiten crawlen
         if not scan_request.full:
-            result = {"pages": [{"url": scan_request.url, "soup": None}]}  # soup wird später geladen
+            result = {"pages": [{"url": scan_request.url, "soup": None}]}
         else:
             result = crawl_website(scan_request.url, exclude_patterns=scan_request.exclude)
 
@@ -58,7 +57,6 @@ async def scan_website(scan_request: ScanRequest):
             url = page['url']
             soup = page['soup']
 
-            # Wenn nur 1 Seite geprüft wird und soup fehlt, nachladen
             if not soup:
                 import requests
                 from bs4 import BeautifulSoup
@@ -111,6 +109,7 @@ async def scan_website(scan_request: ScanRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
+
 # CSV-Export
 @app.get("/download-csv")
 async def download_csv():
@@ -121,6 +120,7 @@ async def download_csv():
         print("[❌ CSV-Fehler]")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
+
 
 # HTML-Export
 @app.get("/download-html")

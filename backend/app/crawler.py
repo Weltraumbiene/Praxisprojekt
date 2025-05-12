@@ -1,9 +1,21 @@
-# Anwendung\backend\app\crawler.py
 import requests
 from bs4 import BeautifulSoup
 import urllib.parse
 import time
 import fnmatch
+from urllib.parse import urlparse
+
+def match_exclusion(url, patterns):
+    """
+    Prüft, ob die URL gegen eines der Ausschlussmuster passt.
+    Achtet auch auf fehlenden abschließenden Slash.
+    """
+    path = urlparse(url).path.rstrip('/')
+    for pattern in patterns:
+        # Prüfe gegen Pfad mit und ohne abschließenden Slash
+        if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(path + '/', pattern):
+            return pattern
+    return None
 
 def crawl_website(base_url, exclude_patterns=None):
     print(f"\n[Scan gestartet] Ziel-URL: {base_url}")
@@ -24,8 +36,8 @@ def crawl_website(base_url, exclude_patterns=None):
             continue
         visited.add(clean_url)
 
-        # Ausschlussprüfung mit Wildcards + Logging
-        matched = next((pattern for pattern in exclude_patterns if fnmatch.fnmatch(clean_url, pattern)), None)
+        # Erweiterte Ausschlussprüfung (Pfadbasiert)
+        matched = match_exclusion(clean_url, exclude_patterns)
         if matched:
             print(f"[Crawler] ⛔ Ausschluss wegen Muster '{matched}': {clean_url}")
             continue

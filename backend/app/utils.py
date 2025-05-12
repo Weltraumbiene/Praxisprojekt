@@ -1,4 +1,3 @@
-# Anwendung\backend\app\main.py
 import csv
 import os
 import html
@@ -6,27 +5,8 @@ from datetime import datetime
 from urllib.parse import urlparse
 from fastapi.responses import FileResponse
 
-# Globale Daten
 latest_issues = []
 latest_website = ""
-
-# Status-Log für laufenden Scan
-scan_log = {
-    "running": False,
-    "current_page": None,
-    "current_step": None,
-    "errors": [],
-    "last_success": None
-}
-
-def reset_scan_log():
-    scan_log.update({
-        "running": False,
-        "current_page": None,
-        "current_step": None,
-        "errors": [],
-        "last_success": None
-    })
 
 REPORTS_DIR = "reports"
 os.makedirs(REPORTS_DIR, exist_ok=True)
@@ -51,33 +31,29 @@ def generate_csv():
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für CSV-Export.")
 
-    # Sortieren nach Fehlertyp und danach URL
-    sorted_issues = sorted(
-        latest_issues,
-        key=lambda x: (x.get("type", ""), x.get("url", ""))
-    )
-
+    sorted_issues = sorted(latest_issues, key=lambda x: (x.get("type", ""), x.get("url", "")))
     filepath, filename = create_filename(latest_website, "csv")
 
     with open(filepath, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["ID", "Fehlertyp", "Beschreibung", "URL", "Codeauszug"])
-
         for idx, issue in enumerate(sorted_issues, start=1):
+            snippet = issue.get("snippet", "-")
+            snippet = snippet[:250] + "…" if len(snippet) > 250 else snippet
             writer.writerow([
                 idx,
                 issue.get("type", "Unbekannt"),
                 issue.get("description", "Keine Beschreibung"),
                 issue.get("url", "Unbekannt"),
-                issue.get("snippet", "-")
+                snippet
             ])
 
     return FileResponse(filepath, media_type='text/csv', filename=filename)
 
-
 def generate_html():
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für HTML-Export.")
+
     filepath, filename = create_filename(latest_website, "html")
     html_content = f"""
     <!DOCTYPE html>
@@ -91,29 +67,40 @@ def generate_html():
             table {{ border-collapse: collapse; width: 100%; font-size: 0.95rem; }}
             th, td {{ border: 1px solid #ccc; padding: 0.5rem; text-align: left; vertical-align: top; }}
             th {{ background-color: #f2f2f2; }}
-            a {{ color: #0057D9; text-decoration: none; }}
-            a:hover {{ text-decoration: underline; }}
             pre {{ white-space: pre-wrap; word-break: break-word; margin: 0; }}
+            .preview-img {{ max-height: 80px; display: block; margin-top: 0.5rem; border: 1px solid #ccc; }}
         </style>
     </head>
     <body>
-        <h1>Barrierefreiheitsreport – {latest_website}</h1>
+        <h1>Barrierefreiheitsreport – {html.escape(latest_website)}</h1>
         <table>
             <tr><th>ID</th><th>Fehlertyp</th><th>Beschreibung</th><th>URL</th><th>Codeauszug</th></tr>
     """
+
     for idx, issue in enumerate(latest_issues, start=1):
-        snippet = html.escape(issue.get('snippet', '-'))
-        url = issue.get("url", "Unbekannt")
-        html_content += (
-            f"<tr>"
-            f"<td>{idx}</td>"
-            f"<td>{issue.get('type', 'Unbekannt')}</td>"
-            f"<td>{issue.get('description', 'Keine Beschreibung')}</td>"
-            f"<td><a href='{url}'>{url}</a></td>"
-            f"<td><pre>{snippet}</pre></td>"
-            f"</tr>"
-        )
+        raw_snippet = issue.get("snippet", "-")
+        short_snippet = raw_snippet[:250] + "…" if len(raw_snippet) > 250 else raw_snippet
+        snippet = html.escape(short_snippet)
+        url = html.escape(issue.get("url", "Unbekannt"))
+        desc = html.escape(issue.get("description", "Keine Beschreibung"))
+        typ = html.escape(issue.get("type", "Unbekannt"))
+
+        img_html = ""
+        if issue.get("type") == "image_alt_missing" and issue.get("image_src", "").startswith("http"):
+            img_html = f"<img src='{html.escape(issue['image_src'])}' alt='Vorschaubild' class='preview-img' />"
+
+        html_content += f"""
+            <tr>
+                <td>{idx}</td>
+                <td>{typ}</td>
+                <td>{desc}</td>
+                <td><a href="{url}">{url}</a></td>
+                <td><pre>{snippet}</pre>{img_html}</td>
+            </tr>
+        """
+
     html_content += "</table></body></html>"
-    with open(filepath, "w", encoding='utf-8') as f:
+    with open(filepath, "w", encoding="utf-8") as f:
         f.write(html_content)
-    return FileResponse(filepath, media_type='text/html', filename=filename)
+
+    return FileResponse(filepath, media_type="text/html", filename=filename)

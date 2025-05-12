@@ -1,6 +1,5 @@
-# Anwendung\backend\app\checker.py
-
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse, urljoin
 import re
 
 # --- Hilfsfunktionen für Farbkontrast ---
@@ -28,9 +27,9 @@ def contrast_ratio(hex1, hex2):
 def extract_inline_color(style):
     fg = re.search(r'color\s*:\s*#?([\da-fA-F]{6})', style or '')
     bg = re.search(r'background-color\s*:\s*#?([\da-fA-F]{6})', style or '')
-    return (fg.group(1) if fg else None), (bg.group(1) if bg else 'ffffff')  # fallback: weißer BG
+    return (fg.group(1) if fg else None), (bg.group(1) if bg else 'ffffff')
 
-# --- Prüf-Funktionen (nutzen direkt soup) ---
+# --- Prüf-Funktionen ---
 def check_contrast(url, soup):
     issues = []
     for tag in soup.find_all(style=True):
@@ -51,14 +50,28 @@ def check_image_alt(url, soup):
     issues = []
     title = soup.title.string.strip() if soup.title else "Ohne Titel"
     for img in soup.find_all('img'):
-        if not img.get('alt'):
+        alt = img.get('alt')
+        if alt is None or alt.strip() == "":
+            # Mögliche Bildquellen prüfen
+            src_candidates = [
+                img.get('data-src'),
+                img.get('data-orig-src'),
+                img.get('data-src-fg'),
+                img.get('data-srcset', '').split(' ')[0],
+                img.get('src'),
+            ]
+            # Nur gültige HTTP-URLs, kein base64 oder leeres src
+            src = next((s for s in src_candidates if s and not s.strip().startswith("data:")), None)
+            abs_src = urljoin(url, src) if src else None
+
             issues.append({
                 "type": "image_alt_missing",
                 "url": url,
                 "title": title,
                 "snippet": str(img),
                 "description": "Fehlende Alt-Beschreibung bei Bild",
-                "element": "IMG-TAG"
+                "element": "IMG-TAG",
+                "image_src": abs_src
             })
     return issues
 
