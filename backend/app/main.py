@@ -3,6 +3,7 @@
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
+from typing import List, Optional
 import traceback
 
 from .crawler import crawl_website
@@ -31,13 +32,17 @@ app.add_middleware(
 # Datenmodell für Anfragen
 class ScanRequest(BaseModel):
     url: str
+    exclude: Optional[List[str]] = []
 
 # POST /scan: Website-Prüfung mit Logging und Fehlerausgabe
 @app.post("/scan")
 async def scan_website(scan_request: ScanRequest):
     print(f"\n[🚀 Scan gestartet] Ziel: {scan_request.url}")
+    if scan_request.exclude:
+        print(f"[⚙️  Ausschlussregeln aktiv]: {', '.join(scan_request.exclude)}")
+
     try:
-        result = crawl_website(scan_request.url)
+        result = crawl_website(scan_request.url, exclude_patterns=scan_request.exclude)
         issues = []
         print(f"[🔍 Crawler] {len(result['pages'])} Seiten gesammelt.")
 

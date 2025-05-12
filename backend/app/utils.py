@@ -50,11 +50,20 @@ def save_latest_scan(issues, website):
 def generate_csv():
     if not latest_issues:
         raise ValueError("Keine Scan-Daten verfügbar für CSV-Export.")
+
+    # Sortieren nach Fehlertyp und danach URL
+    sorted_issues = sorted(
+        latest_issues,
+        key=lambda x: (x.get("type", ""), x.get("url", ""))
+    )
+
     filepath, filename = create_filename(latest_website, "csv")
+
     with open(filepath, mode='w', newline='', encoding='utf-8') as file:
         writer = csv.writer(file)
         writer.writerow(["ID", "Fehlertyp", "Beschreibung", "URL", "Codeauszug"])
-        for idx, issue in enumerate(latest_issues, start=1):
+
+        for idx, issue in enumerate(sorted_issues, start=1):
             writer.writerow([
                 idx,
                 issue.get("type", "Unbekannt"),
@@ -62,7 +71,9 @@ def generate_csv():
                 issue.get("url", "Unbekannt"),
                 issue.get("snippet", "-")
             ])
+
     return FileResponse(filepath, media_type='text/csv', filename=filename)
+
 
 def generate_html():
     if not latest_issues:
