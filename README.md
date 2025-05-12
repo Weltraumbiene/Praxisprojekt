@@ -348,3 +348,90 @@ Nutzer:innen können selbst entscheiden, ob sie ganze Websites oder nur spezifis
 Nicht relevante Bereiche wie z. B. /blog/ können einfach per Textfeld vom Scan ausgeschlossen werden.
 
 Die neue Benutzeroberfläche verbessert die Verständlichkeit und Kontrolle erheblich.
+
+12.05. - Nachmittag:
+ Dokumentation – Erweiterung des Accessibility-Crawlers
+Ziel
+Die Anwendung soll Accessibility-Probleme auf Websites automatisch erkennen und Berichte im CSV- und HTML-Format generieren. Dabei wurden folgende Funktionen verbessert oder ergänzt:
+
+✅ 1. Ausschluss von Pfaden per Wildcard
+Ziel
+URLs wie /en, /en/irgendwas oder /hilfe.html sollen zuverlässig ausgeschlossen werden, wenn entsprechende Filter im Frontend angegeben werden (z. B. */en*, /hilfe.html).
+
+Umsetzung
+In crawler.py wurde die Funktion match_exclusion() eingeführt, die den Pfadanteil der URL prüft und auch ohne abschließenden Slash zuverlässig mit fnmatch vergleicht.
+
+Ersetzt wurde die alte Zeile:
+
+python
+Kopieren
+Bearbeiten
+matched = next((pattern for pattern in exclude_patterns if fnmatch.fnmatch(clean_url, pattern)), None)
+durch:
+
+python
+Kopieren
+Bearbeiten
+matched = match_exclusion(clean_url, exclude_patterns)
+✅ 2. Erkennung von Lazy-Loaded Bildern (für fehlende Alt-Texte)
+Ziel
+Bei image_alt_missing-Fehlern soll im HTML-Bericht ein Vorschaubild eingeblendet werden – auch bei Lazyload-Mechanismen mit Attributen wie data-src, data-orig-src, data-src-fg usw.
+
+Umsetzung
+Die Funktion check_image_alt() in checker.py wurde erweitert:
+
+Berücksichtigt folgende Attribute zur Bildquellenerkennung:
+
+src
+
+data-src
+
+data-orig-src
+
+data-src-fg
+
+erster Pfad aus data-srcset
+
+Ignoriert Base64-/Platzhalter (data:image/...)
+
+Wandelt relative Pfade korrekt in absolute URLs um (via urljoin)
+
+✅ 3. Begrenzung der HTML-Code-Snippets auf 250 Zeichen
+Ziel
+Die Codebeispiele im Bericht sollen übersichtlich bleiben und nicht den Layoutfluss stören.
+
+Umsetzung
+In utils.py (bzw. generate_html() und generate_csv()):
+
+HTML- und CSV-Snippets werden auf 250 Zeichen gekürzt:
+
+python
+Kopieren
+Bearbeiten
+raw_snippet = issue.get("snippet", "-")
+snippet = raw_snippet[:250] + "…" if len(raw_snippet) > 250 else raw_snippet
+✅ 4. Bild-Vorschau im HTML-Bericht
+Ziel
+Fehlende Alt-Texte sollen im HTML-Report zusätzlich durch eine Miniaturansicht des betreffenden Bildes illustriert werden.
+
+Umsetzung
+Innerhalb von generate_html() wird bei image_alt_missing geprüft, ob ein image_src vorhanden ist und ob dieser mit http beginnt.
+
+Falls ja, wird ein <img>-Tag mit maximaler Höhe von 80px gerendert:
+
+html
+Kopieren
+Bearbeiten
+<img src="..." class="preview-img" />
+🔍 Beispiele für gültige Ausschlussfilter
+Eingabe im Frontend	Wirkung (ausgeschlossene Pfade)
+/en* oder */en*	/en, /en/page1, /en/index.html
+/hilfe.html	/hilfe.html
+*/kontakt/*	/de/kontakt/, /en/kontakt/form.html
+
+📦 Veränderte Dateien
+Datei	Änderung
+checker.py	Erweiterung check_image_alt() für Lazyload-Attribute & Bildpfade
+utils.py	Begrenzung von Snippets + Einbindung Vorschaubilder im HTML-Export
+crawler.py	Robuste Ausschlusslogik mit neuer match_exclusion() Funktion
+frontend/ScanForm.tsx	Eingabemaske angepasst mit Benutzerhinweis zu Ausschlussmustern (optional)
