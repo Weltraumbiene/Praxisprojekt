@@ -66,45 +66,47 @@ const ScanForm: React.FC = () => {
       <div className="form-section">
         <p className="instruction">Bitte geben Sie die URL der Webseite ein, die Sie überprüfen wollen:</p>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="url-input-column">
           <input
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             aria-label="Website URL"
-            className="input"
+            className="input centered-input"
             placeholder="z. B. https://www.beispiel.de"
-            style={{ flexGrow: 1, minWidth: '240px', maxWidth: '320px' }}
           />
-          <div className="toggle-wrapper" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div className="toggle-wrapper below-input">
             <label className="switch">
               <input type="checkbox" checked={fullScan} onChange={() => setFullScan(!fullScan)} />
               <span className="slider"></span>
             </label>
-            <span style={{ fontSize: '0.85rem' }}>
+            <span className="toggle-label">
               {fullScan ? "Gesamte Website" : "Nur diese Seite"}
             </span>
           </div>
         </div>
 
         <p className="instruction" style={{ marginTop: '1.5rem' }}>
-          Sollen einzelne Bereiche ignoriert werden?{" "}
-          <span style={{ position: "relative", display: "inline-block" }}>
+          Sollen einzelne Bereiche ignoriert werden?{' '}
+          <span style={{ position: 'relative', display: 'inline-block' }}>
             <HelpCircle
-              size={16}
-              style={{ cursor: "pointer", verticalAlign: "middle" }}
+              size={22}
+              style={{ cursor: 'pointer', verticalAlign: 'middle' }}
               onClick={() => setShowTooltip(!showTooltip)}
             />
             {showTooltip && (
               <div className="tooltip">
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <strong style={{ fontSize: "0.95rem" }}>Pfad-Ausschlüsse</strong>
-                  <X size={16} style={{ cursor: "pointer" }} onClick={() => setShowTooltip(false)} />
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong style={{ fontSize: '0.95rem' }}>Pfad-Ausschlüsse</strong>
+                  <X size={16} style={{ cursor: 'pointer' }} onClick={() => setShowTooltip(false)} />
                 </div>
-                <hr style={{ margin: "0.4rem 0" }} />
-                <p style={{ margin: 0, fontSize: "0.85rem" }}>
-                  Du kannst Pfade oder Wildcards wie <code>/blog/*</code>, <code>/hilfe.html</code> eingeben.
-                  <br />Mehrere Werte trennst du mit Kommas.
+                <hr style={{ margin: '0.4rem 0' }} />
+                <p style={{ margin: 0, fontSize: '0.85rem' }}>
+                  Du kannst einzelne Seiten oder ganze Verzeichnisse vom Scan ausschließen. Verwende z. B. <code>*/blog/*</code>, um alle Seiten mit „blog“ im Pfad zu ignorieren, oder <code>/hilfe.html</code>, um eine einzelne Datei auszuschließen.
+                  <br /><br />
+                  Mehrere Werte kannst du durch Komma trennen, zum Beispiel:
+                  <br />
+                  <code>*/blog/*, /kontakt.html, /email.html</code>
                 </p>
               </div>
             )}
