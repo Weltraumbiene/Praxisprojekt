@@ -12,15 +12,15 @@ const ScanForm: React.FC = () => {
   const [maxDepth, setMaxDepth] = useState(3);
   const [logs, setLogs] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
+  const userScrolledRef = useRef(false);
 
-  // Automatisches Scrollen im Log-Bereich
+  // Scrollverhalten
   useEffect(() => {
-    if (logRef.current) {
+    if (!userScrolledRef.current && logRef.current) {
       logRef.current.scrollTop = logRef.current.scrollHeight;
     }
   }, [logs]);
 
-  // Polling zur Log-Aktualisierung
   useEffect(() => {
     const interval = setInterval(fetchLogs, 1000);
     return () => clearInterval(interval);
@@ -28,14 +28,27 @@ const ScanForm: React.FC = () => {
 
   const fetchLogs = async () => {
     try {
-      const response = await fetch('http://localhost:8000/log-buffer');
-      if (response.ok) {
-        const data = await response.json();
+      const res = await fetch("http://localhost:8000/log-buffer");
+      if (res.ok) {
+        const data = await res.json();
         setLogs(data.logs || []);
       }
-    } catch (error) {
-      console.error("Fehler beim Abrufen der Logs:", error);
+    } catch {
+      // Ignorieren
     }
+  };
+
+  const pollForCompletion = async () => {
+    let attempts = 0;
+    const maxAttempts = 60 * 5; // max 5 Minuten
+    while (attempts < maxAttempts) {
+      const statusRes = await fetch("http://localhost:8000/scan/status");
+      const status = await statusRes.json();
+      if (!status.running) return true;
+      await new Promise(r => setTimeout(r, 1500));
+      attempts++;
+    }
+    return false;
   };
 
   const handleScan = async () => {
@@ -47,31 +60,29 @@ const ScanForm: React.FC = () => {
 
     const excludeArray = exclude
       .split(',')
-      .map(entry => entry.trim())
-      .filter(entry => entry.length > 0);
+      .map(e => e.trim())
+      .filter(Boolean);
 
     try {
-      const response = await fetch('http://localhost:8000/scan', {
+      const startRes = await fetch("http://localhost:8000/scan/start", {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          url,
-          exclude: excludeArray,
-          full: fullScan,
-          max_depth: maxDepth
-        }),
+        body: JSON.stringify({ url, exclude: excludeArray, full: fullScan, max_depth: maxDepth })
       });
 
-      if (!response.ok) throw new Error('Scan fehlgeschlagen.');
+      if (!startRes.ok) throw new Error("Scan konnte nicht gestartet werden");
 
-      const data = await response.json();
-      setIssues(data.issues);
-    } catch (err) {
-      setError("Fehler beim Scannen. Bitte URL prüfen und Backend läuft.");
-    } finally {
-      await fetchLogs(); // Letzte Logs holen
-      setLoading(false);
+      const success = await pollForCompletion();
+      if (!success) throw new Error("Scan hat zu lange gedauert.");
+
+      const resultRes = await fetch("http://localhost:8000/scan/result");
+      const result = await resultRes.json();
+      setIssues(result.issues || []);
       setScanComplete(true);
+    } catch (err) {
+      setError("Fehler beim Scan oder Abrufen des Ergebnisses.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -88,7 +99,6 @@ const ScanForm: React.FC = () => {
             type="text"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            aria-label="Website URL"
             className="input centered-input"
             placeholder="z. B. https://www.beispiel.de"
           />
@@ -131,7 +141,6 @@ const ScanForm: React.FC = () => {
           type="text"
           value={exclude}
           onChange={(e) => setExclude(e.target.value)}
-          aria-label="Ausschlussfilter"
           placeholder="z. B. /blog/*, /shop/*"
           className="input"
         />
@@ -142,11 +151,20 @@ const ScanForm: React.FC = () => {
           </button>
         </div>
 
-        <div className="pseudo-terminal" ref={logRef}>
+        <div
+          className="pseudo-terminal"
+          ref={logRef}
+          onScroll={() => {
+            if (logRef.current) {
+              const nearBottom = logRef.current.scrollHeight - logRef.current.scrollTop - logRef.current.clientHeight < 50;
+              userScrolledRef.current = !nearBottom;
+            }
+          }}
+        >
           <h3>Statusausgabe</h3>
           <pre className="terminal-log">
             {logs.length === 0 ? "Keine Ausgaben vorhanden." : logs.map((line, i) => (
-              <div key={i}>{line}</div>
+              <div key={i} style={{ textAlign: 'left' }}>{line}</div>
             ))}
           </pre>
         </div>

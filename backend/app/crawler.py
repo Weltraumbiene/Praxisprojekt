@@ -1,11 +1,12 @@
-#anwendung/backend/app/crawler.py
-# anwendung/backend/app/crawler.py
+#/backend/app/crawler.py
 import requests
 from bs4 import BeautifulSoup
 import urllib.parse
 import time
 import fnmatch
 from urllib.parse import urlparse
+
+from .logs import log_message  # ⬅️ Wichtig: importieren
 
 def match_exclusion(url, patterns):
     """
@@ -22,8 +23,13 @@ def crawl_website(base_url, exclude_patterns=None, max_depth=3):
     """
     Crawlt die Website und beachtet dabei die Ausschlussmuster und maximale Crawltiefe.
     """
-    print(f"\n[Scan gestartet] Ziel-URL: {base_url}")
-    print(f"[⚙️  Crawltiefe eingestellt]: {max_depth} Ebene(n)")
+    msg_start = f"\n[Scan gestartet] Ziel-URL: {base_url}"
+    print(msg_start)
+    log_message(msg_start)
+
+    msg_depth = f"[⚙️  Crawltiefe eingestellt]: {max_depth} Ebene(n)"
+    print(msg_depth)
+    log_message(msg_depth)
 
     start_time = time.time()
 
@@ -43,12 +49,16 @@ def crawl_website(base_url, exclude_patterns=None, max_depth=3):
         visited.add(clean_url)
 
         if depth > max_depth:
-            print(f"[Crawler] ⛔ Maximale Tiefe erreicht bei: {clean_url}")
+            msg_max = f"[Crawler] ⛔ Maximale Tiefe erreicht bei: {clean_url}"
+            print(msg_max)
+            log_message(msg_max)
             continue
 
         matched = match_exclusion(clean_url, exclude_patterns)
         if matched:
-            print(f"[Crawler] ⛔ Ausschluss wegen Muster '{matched}': {clean_url}")
+            msg_excl = f"[Crawler] ⛔ Ausschluss wegen Muster '{matched}': {clean_url}"
+            print(msg_excl)
+            log_message(msg_excl)
             continue
 
         try:
@@ -60,7 +70,9 @@ def crawl_website(base_url, exclude_patterns=None, max_depth=3):
                     "soup": soup
                 })
 
-                print(f"[Crawler] ✔ Gefunden: {clean_url} (Tiefe: {depth})")
+                msg_found = f"[Crawler] ✔ Gefunden: {clean_url} (Tiefe: {depth})"
+                print(msg_found)
+                log_message(msg_found)
 
                 if depth < max_depth:
                     for link in soup.find_all('a', href=True):
@@ -69,13 +81,21 @@ def crawl_website(base_url, exclude_patterns=None, max_depth=3):
                             to_visit.append((link_url, depth + 1))
 
         except Exception as e:
-            print(f"[Crawler] ⚠ Fehler bei {clean_url}: {e}")
+            msg_error = f"[Crawler] ⚠ Fehler bei {clean_url}: {e}"
+            print(msg_error)
+            log_message(msg_error)
             continue
 
         time.sleep(0.25)  # Pause zur Schonung des Servers
 
     end_time = time.time()
-    print(f"[Crawler] Abgeschlossen. {len(pages)} Seiten gefunden.")
-    print(f"[Crawler] Dauer: {round(end_time - start_time, 2)} Sekunden.\n")
+
+    msg_done = f"[Crawler] Abgeschlossen. {len(pages)} Seiten gefunden."
+    print(msg_done)
+    log_message(msg_done)
+
+    msg_time = f"[Crawler] Dauer: {round(end_time - start_time, 2)} Sekunden.\n"
+    print(msg_time)
+    log_message(msg_time)
 
     return {"pages": pages}
