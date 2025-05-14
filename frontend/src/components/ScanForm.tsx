@@ -13,8 +13,8 @@ const ScanForm: React.FC = () => {
   const [logs, setLogs] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
+  const [showHelp, setShowHelp] = useState(false);
 
-  // Scrollverhalten
   useEffect(() => {
     if (!userScrolledRef.current && logRef.current) {
       logRef.current.scrollTop = logRef.current.scrollHeight;
@@ -40,7 +40,7 @@ const ScanForm: React.FC = () => {
 
   const pollForCompletion = async () => {
     let attempts = 0;
-    const maxAttempts = 60 * 5; // max 5 Minuten
+    const maxAttempts = 60 * 5;
     while (attempts < maxAttempts) {
       const statusRes = await fetch("http://localhost:8000/scan/status");
       const status = await statusRes.json();
@@ -93,7 +93,6 @@ const ScanForm: React.FC = () => {
     <div className="container">
       <div className="form-section">
         <p className="instruction">Bitte geben Sie die URL der Webseite ein, die Sie überprüfen wollen:</p>
-
         <div className="url-input-column">
           <input
             type="text"
@@ -106,44 +105,61 @@ const ScanForm: React.FC = () => {
 
         <div className="scan-options">
           <label>
-            <input
-              type="checkbox"
-              checked={!fullScan}
-              onChange={() => setFullScan(false)}
-            />
-            Nur diese Seite
+            <input type="checkbox" checked={!fullScan} onChange={() => setFullScan(false)} /> Nur diese Seite
           </label>
           <label>
-            <input
-              type="checkbox"
-              checked={fullScan}
-              onChange={() => setFullScan(true)}
-            />
-            Gesamte Website
+            <input type="checkbox" checked={fullScan} onChange={() => setFullScan(true)} /> Gesamte Website
           </label>
         </div>
 
-        <p className="instruction" style={{ marginTop: '1.5rem' }}>
-          Crawltiefe:
-          <input
-            type="number"
-            min="1"
-            max="5"
-            value={maxDepth}
-            onChange={(e) => setMaxDepth(Number(e.target.value))}
-            className="input"
-            style={{ width: '60px', marginLeft: '1rem' }}
-          />
-        </p>
+        <p className="instruction" style={{ marginTop: '1.5rem' }}>Crawltiefe:</p>
+        <input
+          type="number"
+          min="1"
+          max="5"
+          value={maxDepth}
+          onChange={(e) => setMaxDepth(Number(e.target.value))}
+          className="input"
+          style={{ width: '60px' }}
+        />
 
         <p className="instruction">Sollen bestimmte Bereiche vom Scan ausgeschlossen werden?</p>
-        <input
-          type="text"
-          value={exclude}
-          onChange={(e) => setExclude(e.target.value)}
-          placeholder="z. B. /blog/*, /shop/*"
-          className="input"
-        />
+        <div className="exclude-input-row">
+          <input
+            type="text"
+            value={exclude}
+            onChange={(e) => setExclude(e.target.value)}
+            placeholder="z. B. /blog*, /shop*"
+            className="input"
+          />
+          <span className="info-link" onClick={() => setShowHelp(true)}>Info/Hilfe</span>
+        </div>
+
+        {showHelp && (
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <span className="tooltip-close" onClick={() => setShowHelp(false)}>×</span>
+              <h3>Musterhilfe für Ausschlüsse</h3>
+              <p>Mehrere Muster mit Komma trennen. Wildcards (<code>*</code>) sind erlaubt:</p>
+              <table>
+                <thead>
+                  <tr><th>Muster</th><th>Beispiele auf <code>beispiel.com</code></th></tr>
+                </thead>
+                <tbody>
+                  <tr><td><code>/blog*</code></td><td>/blog, /blogartikel, /blog/2023</td></tr>
+                  <tr><td><code>/blog/*</code></td><td>/blog/2023, /blog/news</td></tr>
+                  <tr><td><code>/blog</code></td><td>Nur exakt /blog</td></tr>
+                  <tr><td><code>/admin*</code></td><td>/admin, /admin/login, /admin2</td></tr>
+                  <tr><td><code>/news/2023*</code></td><td>/news/2023, /news/2023/q3</td></tr>
+                  <tr><td><code>/*</code> oder <code>*</code></td><td>Alles</td></tr>
+                  <tr><td><code>/*/login</code></td><td>/admin/login, /user/login</td></tr>
+                  <tr><td><code>*/private*</code></td><td>/area/private, /user/private-files</td></tr>
+                </tbody>
+              </table>
+              <button className="button" onClick={() => setShowHelp(false)}>Schließen</button>
+            </div>
+          </div>
+        )}
 
         <div style={{ marginTop: '1.5rem' }}>
           <button onClick={handleScan} disabled={loading || url.trim() === ""} className="button primary">
@@ -151,41 +167,8 @@ const ScanForm: React.FC = () => {
           </button>
         </div>
 
-        <div
-          className="pseudo-terminal"
-          ref={logRef}
-          onScroll={() => {
-            if (logRef.current) {
-              const nearBottom = logRef.current.scrollHeight - logRef.current.scrollTop - logRef.current.clientHeight < 50;
-              userScrolledRef.current = !nearBottom;
-            }
-          }}
-        >
-          <h3>Statusausgabe</h3>
-          <pre className="terminal-log">
-            {logs.length === 0 ? "Keine Ausgaben vorhanden." : logs.map((line, i) => (
-              <div key={i} style={{ textAlign: 'left' }}>{line}</div>
-            ))}
-          </pre>
-        </div>
-      </div>
-
-      {error && <div className="error">{error}</div>}
-
-      {scanComplete && !loading && (
-        <>
-          <div className="summary-box">
-            <p><strong>Gefundene Fehler insgesamt:</strong> {issues.length}</p>
-            <p>Kontrast-Fehler: {countByType("contrast_insufficient")}</p>
-            <p>Bilder ohne Alt-Text: {countByType("image_alt_missing")}</p>
-            <p>Links ohne Alt-Text: {countByType("link_incomplete")}</p>
-            <p>Semantisch falsche Schaltflächen: {countByType("nonsemantic_button")}</p>
-            <p>Fehlende Formular-Labels: {countByType("form_label_missing")}</p>
-            <p>Überschriftenfehler: {countByType("heading_hierarchy_error")}</p>
-            <p>ARIA-Probleme: {countByType("aria_label_without_text")}</p>
-          </div>
-
-          <div className="report-buttons">
+        {scanComplete && (
+          <div className="report-buttons centered">
             <a href="http://localhost:8000/download-csv" target="_blank" rel="noopener noreferrer">
               <button className="button">Bericht als CSV</button>
             </a>
@@ -193,8 +176,39 @@ const ScanForm: React.FC = () => {
               <button className="button">Bericht als HTML</button>
             </a>
           </div>
-        </>
-      )}
+        )}
+
+        <div className="scan-results-container">
+          <div className="pseudo-terminal" ref={logRef} onScroll={() => {
+            if (logRef.current) {
+              const nearBottom = logRef.current.scrollHeight - logRef.current.scrollTop - logRef.current.clientHeight < 50;
+              userScrolledRef.current = !nearBottom;
+            }
+          }}>
+            <h3>Statusausgabe</h3>
+            <pre className="terminal-log">
+              {logs.length === 0
+                ? "Keine Ausgaben vorhanden. Bitte Test starten."
+                : logs.map((line, i) => (
+                    <div key={i} style={{ textAlign: 'left' }}>{line}</div>
+                  ))}
+            </pre>
+          </div>
+
+          <div className="summary-box">
+            <p><strong>Gefundene Fehler insgesamt:</strong> {scanComplete ? issues.length : "–"}</p>
+            <p>Kontrast-Fehler: {scanComplete ? countByType("contrast_insufficient") : "–"}</p>
+            <p>Bilder ohne Alt-Text: {scanComplete ? countByType("image_alt_missing") : "–"}</p>
+            <p>Links ohne Alt-Text: {scanComplete ? countByType("link_incomplete") : "–"}</p>
+            <p>Semantisch falsche Schaltflächen: {scanComplete ? countByType("nonsemantic_button") : "–"}</p>
+            <p>Fehlende Formular-Labels: {scanComplete ? countByType("form_label_missing") : "–"}</p>
+            <p>Überschriftenfehler: {scanComplete ? countByType("heading_hierarchy_error") : "–"}</p>
+            <p>ARIA-Probleme: {scanComplete ? countByType("aria_label_without_text") : "–"}</p>
+          </div>
+        </div>
+
+        {error && <div className="error">{error}</div>}
+      </div>
     </div>
   );
 };

@@ -1,4 +1,4 @@
-# logs.py
+#/backend/app/logs.py
 from threading import Lock
 
 log_buffer = []
