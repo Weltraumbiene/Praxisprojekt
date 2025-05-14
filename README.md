@@ -435,3 +435,68 @@ checker.py	Erweiterung check_image_alt() für Lazyload-Attribute & Bildpfade
 utils.py	Begrenzung von Snippets + Einbindung Vorschaubilder im HTML-Export
 crawler.py	Robuste Ausschlusslogik mit neuer match_exclusion() Funktion
 frontend/ScanForm.tsx	Eingabemaske angepasst mit Benutzerhinweis zu Ausschlussmustern (optional)
+
+13.05.2025
+Integration eines Live-Terminals für asynchrone Accessibility-Scans
+Im Rahmen der Weiterentwicklung des Accessibility-Analysetools wurde heute die Architektur der Anwendung entscheidend erweitert, um eine Live-Ausgabe von Backend-Logs während der Barrierefreiheitsprüfung im Frontend zu ermöglichen. Ziel war es, dem Benutzer während des Crawl- und Prüfprozesses einen Einblick in den aktuellen Verarbeitungsstatus zu geben – vergleichbar mit einem Konsolen-Log in Echtzeit.
+
+Hintergrund und Motivation
+Zuvor wurden alle Logausgaben lediglich im Backend-Terminal angezeigt, während das Frontend lediglich einen statischen Ladezustand darstellte. Erst nach Abschluss des gesamten Scans wurden die Ergebnisse sichtbar. Dies führte bei längeren Crawlprozessen (z. B. bei mehreren Hundert Seiten) zu einem nicht-transparenten UX-Verhalten ohne Rückmeldung über den Zwischenstatus. Die neue Lösung sollte dieses Problem beseitigen, ohne auf komplexe WebSocket-Technologien zurückzugreifen.
+
+Technische Umsetzung
+1. Zentrale Logging-Schnittstelle mit Memory Buffer
+In der Datei logs.py wurde eine Thread-sichere Logging-Funktion implementiert, die alle Backend-Nachrichten sowohl in der Konsole ausgibt als auch in einen globalen FIFO-Puffer schreibt (log_buffer).
+Mittels threading.Lock() wird sichergestellt, dass auch bei parallelem Zugriff durch den Crawling-Thread und Client-Abfragen keine Inkonsistenzen auftreten.
+
+python
+Kopieren
+Bearbeiten
+log_buffer = []
+log_lock = Lock()
+
+def log_message(msg: str):
+    print(msg)
+    with log_lock:
+        log_buffer.append(msg)
+        if len(log_buffer) > 300:
+            log_buffer.pop(0)
+2. Crawler-Modul angepasst für kontinuierliche Log-Ausgabe
+Die bestehende Crawler-Funktion (crawl_website) wurde so erweitert, dass sie bereits während der Laufzeit Fortschritte meldet – z. B. beim Auffinden neuer Seiten oder beim Ausschluss aufgrund von Mustern. Diese Statusmeldungen werden direkt über log_message() an das Frontend weitergegeben.
+
+Die ursprünglichen print()-Aufrufe wurden durch zusätzliche log_message()-Aufrufe ergänzt, um vollständige Transparenz im Puffer zu erhalten – ohne die Terminal-Ausgabe zu verlieren.
+
+python
+Kopieren
+Bearbeiten
+msg_found = f"[Crawler] ✔ Gefunden: {clean_url} (Tiefe: {depth})"
+print(msg_found)
+log_message(msg_found)
+3. Asynchrone Architektur über Controller und Hintergrundprozess
+Der eigentliche Scanprozess läuft nun vollständig in einem separaten Thread, der über scan_controller.py gestartet wird. Dies geschieht über start_background_scan() – eine API-kontrollierte Methode, die den Scanstatus und das finale Ergebnis intern verwaltet.
+
+python
+Kopieren
+Bearbeiten
+thread = threading.Thread(target=run_scan_thread, args=(...))
+thread.start()
+So wird verhindert, dass der Haupt-Thread der FastAPI-Anwendung blockiert, und es bleibt jederzeit möglich, über /log-buffer den aktuellen Status abzurufen.
+
+4. Frontend: Pseudo-Terminal mit Live-Polling
+Im React-Frontend wurde das bestehende Formular um ein persistentes „pseudo-terminal“ ergänzt. Über ein useEffect() wird im Intervall von einer Sekunde (später ggf. feinjustierbar) der aktuelle Log-Puffer über fetch('/log-buffer') geladen und angezeigt.
+
+Ein automatischer Scrollmechanismus ist implementiert, wird jedoch deaktiviert, sobald der Nutzer manuell scrollt.
+
+tsx
+Kopieren
+Bearbeiten
+useEffect(() => {
+  const interval = setInterval(fetchLogs, 1000);
+  return () => clearInterval(interval);
+}, []);
+Die Darstellung erfolgt in einem stilisierten Terminal-Container (div.pseudo-terminal), der an klassische Shells erinnert (monospace, grüner Text auf dunklem Hintergrund).
+
+Ergebnis und Fazit
+Die Implementierung ermöglicht nun eine vollständig transparente, benutzernahe Darstellung des Prüfprozesses, inklusive Crawling und semantischer Analyse. Alle Schritte – von der Konfiguration bis zur HTML-/CSV-Ausgabe – sind live beobachtbar.
+
+Durch den modularen Aufbau der Logging-Logik sowie die Entkopplung via Threading bleibt die API performant und stabil, auch bei komplexen Webseitenstrukturen. Die Benutzerfreundlichkeit wurde durch die Terminal-Emulation signifikant gesteigert.
+
