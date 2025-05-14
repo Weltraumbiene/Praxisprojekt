@@ -1,4 +1,5 @@
 # Anwendung\backend\app\main.py
+# Anwendung\backend\app\main.py
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -19,7 +20,6 @@ from .utils import generate_csv, generate_html, save_latest_scan
 
 app = FastAPI()
 
-# CORS-Konfiguration für lokale Entwicklung
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["http://localhost:5173"],
@@ -28,14 +28,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Datenmodell für Anfragen
 class ScanRequest(BaseModel):
     url: str
     exclude: Optional[List[str]] = []
-    full: Optional[bool] = False  # Standardmäßig Einzelseiten-Scan
-    max_depth: Optional[int] = 3  # Maximaler Crawltiefe
+    full: Optional[bool] = False
+    max_depth: Optional[int] = 3
 
-# POST /scan: Website-Prüfung mit Logging und Fehlerausgabe
 @app.post("/scan")
 async def scan_website(scan_request: ScanRequest):
     print(f"\n[🚀 Scan gestartet] Ziel: {scan_request.url}")
@@ -45,12 +43,16 @@ async def scan_website(scan_request: ScanRequest):
         print(f"[⚙️  Ausschlussregeln aktiv]: {', '.join(scan_request.exclude)}")
     if not scan_request.full:
         print("[⚙️  Modus: Nur eingegebene URL wird geprüft]")
-    
+
     try:
         if not scan_request.full:
             result = {"pages": [{"url": scan_request.url, "soup": None}]}
         else:
-            result = crawl_website(scan_request.url, exclude_patterns=scan_request.exclude)
+            result = crawl_website(
+                scan_request.url,
+                exclude_patterns=scan_request.exclude,
+                max_depth=scan_request.max_depth  # ✅ HIER WIRD ES ÜBERGEBEN
+            )
 
         issues = []
         print(f"[🔍 Crawler] {len(result['pages'])} Seiten gesammelt.")
@@ -91,7 +93,6 @@ async def scan_website(scan_request: ScanRequest):
                 print(f"[⚠️ Fehler bei Analyse] {url}")
                 traceback.print_exc()
 
-        # Duplikate entfernen
         seen = set()
         unique_issues = []
         for issue in issues:
@@ -109,7 +110,6 @@ async def scan_website(scan_request: ScanRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# CSV-Export
 @app.get("/download-csv")
 async def download_csv():
     try:
@@ -120,7 +120,6 @@ async def download_csv():
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-# HTML-Export
 @app.get("/download-html")
 async def download_html():
     try:
