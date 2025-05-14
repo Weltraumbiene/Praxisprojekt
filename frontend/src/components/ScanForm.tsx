@@ -1,8 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import '../css/style.css';
-import loadingIcon from '../images/loading.png';
-import scanSteps from '../data/scanSteps.json';
-import { HelpCircle, X } from 'lucide-react';
 
 const ScanForm: React.FC = () => {
   const [url, setUrl] = useState('https://');
@@ -11,29 +8,42 @@ const ScanForm: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [scanComplete, setScanComplete] = useState(false);
-  const [statusText, setStatusText] = useState("Initialisiere Scanner...");
-  const [fullScan, setFullScan] = useState(false); // false = Einzelseite scan
-  const [maxDepth, setMaxDepth] = useState(3); // Maximal Tiefe
-  const [showTooltip, setShowTooltip] = useState(false);
+  const [fullScan, setFullScan] = useState(false);
+  const [maxDepth, setMaxDepth] = useState(3);
+  const [logs, setLogs] = useState<string[]>([]);
+  const logRef = useRef<HTMLDivElement>(null);
 
+  // Automatisches Scrollen im Log-Bereich
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
-    const showRandomStep = () => {
-      const randomIndex = Math.floor(Math.random() * scanSteps.length);
-      setStatusText(scanSteps[randomIndex]);
-      const delay = Math.floor(Math.random() * (5000 - 2000 + 1)) + 2000;
-      timeout = setTimeout(showRandomStep, delay);
-    };
-    if (loading) showRandomStep();
-    else setStatusText("");
-    return () => clearTimeout(timeout);
-  }, [loading]);
+    if (logRef.current) {
+      logRef.current.scrollTop = logRef.current.scrollHeight;
+    }
+  }, [logs]);
+
+  // Polling zur Log-Aktualisierung
+  useEffect(() => {
+    const interval = setInterval(fetchLogs, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchLogs = async () => {
+    try {
+      const response = await fetch('http://localhost:8000/log-buffer');
+      if (response.ok) {
+        const data = await response.json();
+        setLogs(data.logs || []);
+      }
+    } catch (error) {
+      console.error("Fehler beim Abrufen der Logs:", error);
+    }
+  };
 
   const handleScan = async () => {
     setLoading(true);
     setError(null);
     setIssues([]);
     setScanComplete(false);
+    setLogs([]);
 
     const excludeArray = exclude
       .split(',')
@@ -44,7 +54,12 @@ const ScanForm: React.FC = () => {
       const response = await fetch('http://localhost:8000/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, exclude: excludeArray, full: fullScan, max_depth: maxDepth }), // max_depth hinzugefügt
+        body: JSON.stringify({
+          url,
+          exclude: excludeArray,
+          full: fullScan,
+          max_depth: maxDepth
+        }),
       });
 
       if (!response.ok) throw new Error('Scan fehlgeschlagen.');
@@ -54,6 +69,7 @@ const ScanForm: React.FC = () => {
     } catch (err) {
       setError("Fehler beim Scannen. Bitte URL prüfen und Backend läuft.");
     } finally {
+      await fetchLogs(); // Letzte Logs holen
       setLoading(false);
       setScanComplete(true);
     }
@@ -97,7 +113,7 @@ const ScanForm: React.FC = () => {
           </label>
         </div>
 
-        <p className="instruction" style={{ marginTop: '1.5rem' }} >
+        <p className="instruction" style={{ marginTop: '1.5rem' }}>
           Crawltiefe:
           <input
             type="number"
@@ -122,19 +138,21 @@ const ScanForm: React.FC = () => {
 
         <div style={{ marginTop: '1.5rem' }}>
           <button onClick={handleScan} disabled={loading || url.trim() === ""} className="button primary">
-            {loading ? "Prüfe..." : "Prüfung starten"}
+            {loading ? "Scan läuft..." : "Prüfung starten"}
           </button>
+        </div>
+
+        <div className="pseudo-terminal" ref={logRef}>
+          <h3>Statusausgabe</h3>
+          <pre className="terminal-log">
+            {logs.length === 0 ? "Keine Ausgaben vorhanden." : logs.map((line, i) => (
+              <div key={i}>{line}</div>
+            ))}
+          </pre>
         </div>
       </div>
 
       {error && <div className="error">{error}</div>}
-
-      {loading && (
-        <div className="loading-container">
-          <img src={loadingIcon} alt="Lade..." className="loading-icon" />
-          <p>{statusText}</p>
-        </div>
-      )}
 
       {scanComplete && !loading && (
         <>

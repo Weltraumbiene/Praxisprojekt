@@ -267,3 +267,25 @@ input:checked + .slider:before {
   align-items: center;
   gap: 0.5rem;
 }
+
+.pseudo-terminal {
+  margin-block-start: 2rem;
+  background-color: #111;
+  color: #0f0;
+  padding: 1rem;
+  border-radius: 8px;
+  max-block-size: 300px;
+  overflow-y: auto;
+  font-family: monospace;
+  font-size: 0.85rem;
+  border: 1px solid #333;
+}
+
+.pseudo-terminal h3 {
+  color: #fff;
+  margin-block-end: 0.5rem;
+}
+
+.terminal-log {
+  white-space: pre-wrap;
+}
