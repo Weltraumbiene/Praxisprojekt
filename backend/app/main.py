@@ -1,5 +1,4 @@
 # Anwendung\backend\app\main.py
-
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
@@ -33,17 +32,20 @@ app.add_middleware(
 class ScanRequest(BaseModel):
     url: str
     exclude: Optional[List[str]] = []
-    full: Optional[bool] = True  # Neu: Standard ist "vollständiger Scan"
+    full: Optional[bool] = False  # Standardmäßig Einzelseiten-Scan
+    max_depth: Optional[int] = 3  # Maximaler Crawltiefe
 
 # POST /scan: Website-Prüfung mit Logging und Fehlerausgabe
 @app.post("/scan")
 async def scan_website(scan_request: ScanRequest):
     print(f"\n[🚀 Scan gestartet] Ziel: {scan_request.url}")
+    print(f"[⚙️  Crawltiefe eingestellt]: {scan_request.max_depth} Ebene(n)")
+
     if scan_request.exclude:
         print(f"[⚙️  Ausschlussregeln aktiv]: {', '.join(scan_request.exclude)}")
     if not scan_request.full:
         print("[⚙️  Modus: Nur eingegebene URL wird geprüft]")
-
+    
     try:
         if not scan_request.full:
             result = {"pages": [{"url": scan_request.url, "soup": None}]}
@@ -69,7 +71,6 @@ async def scan_website(scan_request: ScanRequest):
                     continue
 
             print(f"\n[📝 Prüfe Seite] {url}")
-
             try:
                 for check_func, label in [
                     (check_contrast, "Kontraste"),
@@ -86,7 +87,6 @@ async def scan_website(scan_request: ScanRequest):
                     issues.extend(new_issues)
 
                 print(f"[✅ Abgeschlossen] {url}")
-
             except Exception as step_err:
                 print(f"[⚠️ Fehler bei Analyse] {url}")
                 traceback.print_exc()
@@ -109,7 +109,6 @@ async def scan_website(scan_request: ScanRequest):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
 
-
 # CSV-Export
 @app.get("/download-csv")
 async def download_csv():
@@ -120,7 +119,6 @@ async def download_csv():
         print("[❌ CSV-Fehler]")
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))
-
 
 # HTML-Export
 @app.get("/download-html")

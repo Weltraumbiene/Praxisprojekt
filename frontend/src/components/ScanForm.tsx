@@ -12,7 +12,8 @@ const ScanForm: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [scanComplete, setScanComplete] = useState(false);
   const [statusText, setStatusText] = useState("Initialisiere Scanner...");
-  const [fullScan, setFullScan] = useState(true);
+  const [fullScan, setFullScan] = useState(false); // false = Einzelseite scan
+  const [maxDepth, setMaxDepth] = useState(3); // Maximal Tiefe
   const [showTooltip, setShowTooltip] = useState(false);
 
   useEffect(() => {
@@ -43,7 +44,7 @@ const ScanForm: React.FC = () => {
       const response = await fetch('http://localhost:8000/scan', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, exclude: excludeArray, full: fullScan }),
+        body: JSON.stringify({ url, exclude: excludeArray, full: fullScan, max_depth: maxDepth }), // max_depth hinzugefügt
       });
 
       if (!response.ok) throw new Error('Scan fehlgeschlagen.');
@@ -75,44 +76,41 @@ const ScanForm: React.FC = () => {
             className="input centered-input"
             placeholder="z. B. https://www.beispiel.de"
           />
-          <div className="toggle-wrapper below-input">
-            <label className="switch">
-              <input type="checkbox" checked={fullScan} onChange={() => setFullScan(!fullScan)} />
-              <span className="slider"></span>
-            </label>
-            <span className="toggle-label">
-              {fullScan ? "Gesamte Website" : "Nur diese Seite"}
-            </span>
-          </div>
         </div>
 
-        <p className="instruction" style={{ marginTop: '1.5rem' }}>
-          Sollen einzelne Bereiche ignoriert werden?{' '}
-          <span style={{ position: 'relative', display: 'inline-block' }}>
-            <HelpCircle
-              size={22}
-              style={{ cursor: 'pointer', verticalAlign: 'middle' }}
-              onClick={() => setShowTooltip(!showTooltip)}
+        <div className="scan-options">
+          <label>
+            <input
+              type="checkbox"
+              checked={!fullScan}
+              onChange={() => setFullScan(false)}
             />
-            {showTooltip && (
-              <div className="tooltip">
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <strong style={{ fontSize: '0.95rem' }}>Pfad-Ausschlüsse</strong>
-                  <X size={16} style={{ cursor: 'pointer' }} onClick={() => setShowTooltip(false)} />
-                </div>
-                <hr style={{ margin: '0.4rem 0' }} />
-                <p style={{ margin: 0, fontSize: '0.85rem' }}>
-                  Du kannst einzelne Seiten oder ganze Verzeichnisse vom Scan ausschließen. Verwende z. B. <code>*/blog/*</code>, um alle Seiten mit „blog“ im Pfad zu ignorieren, oder <code>/hilfe.html</code>, um eine einzelne Datei auszuschließen.
-                  <br /><br />
-                  Mehrere Werte kannst du durch Komma trennen, zum Beispiel:
-                  <br />
-                  <code>*/blog/*, /kontakt.html, /email.html</code>
-                </p>
-              </div>
-            )}
-          </span>
+            Nur diese Seite
+          </label>
+          <label>
+            <input
+              type="checkbox"
+              checked={fullScan}
+              onChange={() => setFullScan(true)}
+            />
+            Gesamte Website
+          </label>
+        </div>
+
+        <p className="instruction" style={{ marginTop: '1.5rem' }} >
+          Crawltiefe:
+          <input
+            type="number"
+            min="1"
+            max="5"
+            value={maxDepth}
+            onChange={(e) => setMaxDepth(Number(e.target.value))}
+            className="input"
+            style={{ width: '60px', marginLeft: '1rem' }}
+          />
         </p>
 
+        <p className="instruction">Sollen bestimmte Bereiche vom Scan ausgeschlossen werden?</p>
         <input
           type="text"
           value={exclude}

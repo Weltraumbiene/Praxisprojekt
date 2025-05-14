@@ -1,3 +1,4 @@
+#anwendung/backend/app/checker.py
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import re
