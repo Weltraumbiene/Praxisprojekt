@@ -6,14 +6,14 @@ const ScanForm: React.FC = () => {
   const [exclude, setExclude] = useState('');
   const [issues, setIssues] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [scanComplete, setScanComplete] = useState(false);
   const [fullScan, setFullScan] = useState(false);
-  const [maxDepth, setMaxDepth] = useState(3);
+  const [maxDepth, setMaxDepth] = useState(1);
   const [logs, setLogs] = useState<string[]>([]);
   const logRef = useRef<HTMLDivElement>(null);
   const userScrolledRef = useRef(false);
   const [showHelp, setShowHelp] = useState(false);
+  const [showWarning, setShowWarning] = useState(false);
 
   useEffect(() => {
     if (!userScrolledRef.current && logRef.current) {
@@ -34,26 +34,24 @@ const ScanForm: React.FC = () => {
         setLogs(data.logs || []);
       }
     } catch {
-      // Ignorieren
     }
   };
 
   const pollForCompletion = async () => {
-    let attempts = 0;
-    const maxAttempts = 60 * 5;
-    while (attempts < maxAttempts) {
-      const statusRes = await fetch("http://localhost:8000/scan/status");
-      const status = await statusRes.json();
-      if (!status.running) return true;
-      await new Promise(r => setTimeout(r, 1500));
-      attempts++;
+    while (true) {
+      try {
+        const statusRes = await fetch("http://localhost:8000/scan/status");
+        const status = await statusRes.json();
+        if (!status.running) return true;
+        await new Promise(r => setTimeout(r, 1500));
+      } catch {
+        await new Promise(r => setTimeout(r, 1500));
+      }
     }
-    return false;
   };
 
   const handleScan = async () => {
     setLoading(true);
-    setError(null);
     setIssues([]);
     setScanComplete(false);
     setLogs([]);
@@ -70,17 +68,14 @@ const ScanForm: React.FC = () => {
         body: JSON.stringify({ url, exclude: excludeArray, full: fullScan, max_depth: maxDepth })
       });
 
-      if (!startRes.ok) throw new Error("Scan konnte nicht gestartet werden");
+      if (!startRes.ok) return;
 
-      const success = await pollForCompletion();
-      if (!success) throw new Error("Scan hat zu lange gedauert.");
+      await pollForCompletion();
 
       const resultRes = await fetch("http://localhost:8000/scan/result");
       const result = await resultRes.json();
       setIssues(result.issues || []);
       setScanComplete(true);
-    } catch (err) {
-      setError("Fehler beim Scan oder Abrufen des Ergebnisses.");
     } finally {
       setLoading(false);
     }
@@ -88,6 +83,17 @@ const ScanForm: React.FC = () => {
 
   const countByType = (type: string) =>
     issues.filter((issue) => issue.type === type).length;
+
+  const handleCrawlDepthChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newDepth = Number(e.target.value);
+    setMaxDepth(newDepth);
+
+    if (newDepth >= 2) {
+      setShowWarning(true);
+    } else {
+      setShowWarning(false);
+    }
+  };
 
   return (
     <div className="container">
@@ -112,16 +118,27 @@ const ScanForm: React.FC = () => {
           </label>
         </div>
 
-        <p className="instruction" style={{ marginTop: '1.5rem' }}>Crawltiefe:</p>
+        <p className="instruction" style={{ marginTop: '1.5rem' }}>Crawl-Tiefe:</p>
         <input
           type="number"
           min="1"
           max="5"
           value={maxDepth}
-          onChange={(e) => setMaxDepth(Number(e.target.value))}
+          onChange={handleCrawlDepthChange}
           className="input"
           style={{ width: '60px' }}
         />
+
+        {showWarning && (
+          <div className="modal-overlay">
+            <div className="modal-box">
+              <span className="tooltip-close" onClick={() => setShowWarning(false)}>×</span>
+              <h3>Achtung!</h3>
+              <p>Das Erhöhen der Crawl-Tiefe kann bei komplexen Webseiten zu erheblichen Datenmengen und sehr langen Testdurchläufen führen.</p>
+              <button className="button" onClick={() => setShowWarning(false)}>Schließen</button>
+            </div>
+          </div>
+        )}
 
         <p className="instruction">Sollen bestimmte Bereiche vom Scan ausgeschlossen werden?</p>
         <div className="exclude-input-row">
@@ -206,8 +223,6 @@ const ScanForm: React.FC = () => {
             <p>ARIA-Probleme: {scanComplete ? countByType("aria_label_without_text") : "–"}</p>
           </div>
         </div>
-
-        {error && <div className="error">{error}</div>}
       </div>
     </div>
   );

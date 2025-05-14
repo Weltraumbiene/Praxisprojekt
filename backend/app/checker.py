@@ -3,7 +3,6 @@ from bs4 import BeautifulSoup
 from urllib.parse import urlparse, urljoin
 import re
 
-# --- Hilfsfunktionen für Farbkontrast ---
 def relative_luminance(r, g, b):
     def adjust(c):
         c = c / 255.0
@@ -30,7 +29,6 @@ def extract_inline_color(style):
     bg = re.search(r'background-color\s*:\s*#?([\da-fA-F]{6})', style or '')
     return (fg.group(1) if fg else None), (bg.group(1) if bg else 'ffffff')
 
-# --- Prüf-Funktionen ---
 def check_contrast(url, soup):
     issues = []
     for tag in soup.find_all(style=True):
@@ -61,7 +59,6 @@ def check_image_alt(url, soup):
                 img.get('data-srcset', '').split(' ')[0],
                 img.get('src'),
             ]
-            # Nur gültige HTTP-URLs, kein base64 oder leeres src
             src = next((s for s in src_candidates if s and not s.strip().startswith("data:")), None)
             abs_src = urljoin(url, src) if src else None
 

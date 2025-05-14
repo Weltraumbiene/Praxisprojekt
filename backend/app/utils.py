@@ -61,7 +61,7 @@ def generate_html():
     <html lang='de'>
     <head>
         <meta charset='UTF-8'>
-        <title>Barrierefreiheitsreport – {latest_website}</title>
+        <title>Barrierefreiheitsreport – {html.escape(latest_website)}</title>
         <style>
             body {{ font-family: Arial, sans-serif; margin: 2rem; color: #222; }}
             h1 {{ font-size: 1.5rem; margin-bottom: 1rem; }}
@@ -79,29 +79,38 @@ def generate_html():
     """
 
     for idx, issue in enumerate(latest_issues, start=1):
-        raw_snippet = issue.get("snippet", "-")
-        short_snippet = raw_snippet[:250] + "…" if len(raw_snippet) > 250 else raw_snippet
-        snippet = html.escape(short_snippet)
-        url = html.escape(issue.get("url", "Unbekannt"))
-        desc = html.escape(issue.get("description", "Keine Beschreibung"))
-        typ = html.escape(issue.get("type", "Unbekannt"))
+        try:
+            raw_snippet = issue.get("snippet", "-") or "-"
+            short_snippet = raw_snippet[:250] + "…" if len(raw_snippet) > 250 else raw_snippet
+            snippet = html.escape(short_snippet)
+            url = html.escape(issue.get("url", "Unbekannt"))
+            desc = html.escape(issue.get("description", "Keine Beschreibung"))
+            typ = html.escape(issue.get("type", "Unbekannt"))
 
-        img_html = ""
-        if issue.get("type") == "image_alt_missing" and issue.get("image_src", "").startswith("http"):
-            img_html = f"<img src='{html.escape(issue['image_src'])}' alt='Vorschaubild' class='preview-img' />"
+            img_html = ""
+            if issue.get("type") == "image_alt_missing":
+                src = issue.get("image_src", "")
+                if src and src.startswith("http") and "'" not in src:
+                    img_html = f"<img src=\"{html.escape(src)}\" alt=\"Vorschaubild\" class=\"preview-img\" />"
 
-        html_content += f"""
-            <tr>
-                <td>{idx}</td>
-                <td>{typ}</td>
-                <td>{desc}</td>
-                <td><a href="{url}">{url}</a></td>
-                <td><pre>{snippet}</pre>{img_html}</td>
-            </tr>
-        """
+            html_content += f"""
+                <tr>
+                    <td>{idx}</td>
+                    <td>{typ}</td>
+                    <td>{desc}</td>
+                    <td><a href="{url}">{url}</a></td>
+                    <td><pre>{snippet}</pre>{img_html}</td>
+                </tr>
+            """
+        except Exception as e:
+            continue
 
     html_content += "</table></body></html>"
-    with open(filepath, "w", encoding="utf-8") as f:
-        f.write(html_content)
+
+    try:
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(html_content)
+    except Exception as write_err:
+        raise RuntimeError(f"Fehler beim Schreiben der HTML-Datei: {write_err}")
 
     return FileResponse(filepath, media_type="text/html", filename=filename)

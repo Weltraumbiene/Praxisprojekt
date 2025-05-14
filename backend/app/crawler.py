@@ -1,4 +1,3 @@
-#/backend/app/crawler.py
 import requests
 from bs4 import BeautifulSoup
 import urllib.parse
@@ -6,7 +5,7 @@ import time
 import fnmatch
 from urllib.parse import urlparse
 
-from .logs import log_message  # ⬅️ Wichtig: importieren
+from .logs import log_message
 
 def match_exclusion(url, patterns):
     """
@@ -18,6 +17,12 @@ def match_exclusion(url, patterns):
         if fnmatch.fnmatch(path, pattern) or fnmatch.fnmatch(path + '/', pattern):
             return pattern
     return None
+
+def normalize_url(url):
+    """
+    Normalisiert die URL, indem Fragment (#...) entfernt und Trailing Slash bereinigt wird.
+    """
+    return url.split("#")[0].rstrip("/")
 
 def crawl_website(base_url, exclude_patterns=None, max_depth=3):
     """
@@ -37,56 +42,60 @@ def crawl_website(base_url, exclude_patterns=None, max_depth=3):
         exclude_patterns = []
 
     visited = set()
-    to_visit = [(base_url.rstrip("/"), 0)]  # Tupel aus (URL, Tiefe)
+    queued = set()
+    to_visit = [(normalize_url(base_url), 0)]
+    queued.add(normalize_url(base_url))
     pages = []
 
     while to_visit:
         url, depth = to_visit.pop(0)
-        clean_url = url.split("#")[0].rstrip("/")
+        queued.discard(url)
 
-        if clean_url in visited:
+        if url in visited:
             continue
-        visited.add(clean_url)
+        visited.add(url)
 
         if depth > max_depth:
-            msg_max = f"[Crawler] ⛔ Maximale Tiefe erreicht bei: {clean_url}"
+            msg_max = f"[Crawler] ⛔ Maximale Tiefe erreicht bei: {url}"
             print(msg_max)
             log_message(msg_max)
             continue
 
-        matched = match_exclusion(clean_url, exclude_patterns)
+        matched = match_exclusion(url, exclude_patterns)
         if matched:
-            msg_excl = f"[Crawler] ⛔ Ausschluss wegen Muster '{matched}': {clean_url}"
+            msg_excl = f"[Crawler] ⛔ Ausschluss wegen Muster '{matched}': {url}"
             print(msg_excl)
             log_message(msg_excl)
             continue
 
         try:
-            response = requests.get(clean_url, timeout=5)
+            response = requests.get(url, timeout=5)
             if response.status_code == 200:
                 soup = BeautifulSoup(response.text, 'html.parser')
                 pages.append({
-                    "url": clean_url,
+                    "url": url,
                     "soup": soup
                 })
 
-                msg_found = f"[Crawler] ✔ Gefunden: {clean_url} (Tiefe: {depth})"
+                msg_found = f"[Crawler] ✔ Gefunden: {url} (Tiefe: {depth})"
                 print(msg_found)
                 log_message(msg_found)
 
                 if depth < max_depth:
                     for link in soup.find_all('a', href=True):
-                        link_url = urllib.parse.urljoin(clean_url, link['href']).split("#")[0].rstrip("/")
-                        if link_url.startswith(base_url) and link_url not in visited:
-                            to_visit.append((link_url, depth + 1))
+                        link_url = urllib.parse.urljoin(url, link['href'])
+                        normalized = normalize_url(link_url)
+                        if normalized.startswith(base_url) and normalized not in visited and normalized not in queued:
+                            to_visit.append((normalized, depth + 1))
+                            queued.add(normalized)
 
         except Exception as e:
-            msg_error = f"[Crawler] ⚠ Fehler bei {clean_url}: {e}"
+            msg_error = f"[Crawler] ⚠ Fehler bei {url}: {e}"
             print(msg_error)
             log_message(msg_error)
             continue
 
-        time.sleep(0.25)  # Pause zur Schonung des Servers
+        time.sleep(0.25)
 
     end_time = time.time()
 
